@@ -1,0 +1,91 @@
+import React, { useState } from 'react';
+import { WeddingProvider, useWedding } from './context/WeddingContext';
+import { Navbar } from './components/Navbar';
+import { HeroSection } from './components/HeroSection';
+import { HowItWorks } from './components/HowItWorks';
+import { FeatureGrid } from './components/FeatureGrid';
+import { PhotographerBenefits } from './components/PhotographerBenefits';
+import { PricingSection } from './components/PricingSection';
+import { Footer } from './components/Footer';
+import { AuthModal } from './components/AuthModal';
+import { SupabaseConfigModal } from './components/SupabaseConfigModal';
+import { DashboardOverview } from './components/Dashboard/DashboardOverview';
+import { GuestGalleryView } from './components/GuestGallery/GuestGalleryView';
+
+function AppContent() {
+  const { currentView } = useWedding();
+  const [authModalState, setAuthModalState] = useState<{ isOpen: boolean; mode: 'login' | 'register' | 'forgot' }>({
+    isOpen: false,
+    mode: 'login'
+  });
+  const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
+
+  const openAuth = (mode: 'login' | 'register' | 'forgot' = 'login') => {
+    setAuthModalState({ isOpen: true, mode });
+  };
+
+  const closeAuth = () => {
+    setAuthModalState(prev => ({ ...prev, isOpen: false }));
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-slate-800 antialiased selection:bg-[#E2D4B7] selection:text-slate-900">
+      {/* Top Navbar */}
+      <Navbar
+        onOpenAuth={openAuth}
+        onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
+      />
+
+      {/* Main View Router */}
+      <main className="flex-1">
+        {currentView.type === 'home' && (
+          <>
+            <HeroSection onOpenAuth={openAuth} />
+            <HowItWorks />
+            <FeatureGrid />
+            <PhotographerBenefits />
+            <PricingSection onOpenAuth={openAuth} />
+          </>
+        )}
+
+        {currentView.type === 'dashboard' && (
+          <DashboardOverview />
+        )}
+
+        {currentView.type === 'guest-gallery' && (
+          <GuestGalleryView
+            eventSlug={currentView.eventSlug}
+            initialPhotoId={currentView.photoId}
+          />
+        )}
+      </main>
+
+      {/* Platform Footer */}
+      <Footer
+        onOpenAuth={() => openAuth('login')}
+        onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
+      />
+
+      {/* Photographer Authentication Modal */}
+      <AuthModal
+        isOpen={authModalState.isOpen}
+        onClose={closeAuth}
+        initialMode={authModalState.mode}
+      />
+
+      {/* Database & Cloud Storage Settings Modal */}
+      <SupabaseConfigModal
+        isOpen={isSupabaseModalOpen}
+        onClose={() => setIsSupabaseModalOpen(false)}
+      />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <WeddingProvider>
+      <AppContent />
+    </WeddingProvider>
+  );
+}

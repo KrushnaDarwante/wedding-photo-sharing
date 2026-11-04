@@ -1,0 +1,6 @@
+{
+  "name": "AuraWed - Wedding Photo Sharing SaaS",
+  "description": "Premium wedding photo sharing SaaS platform for professional photographers with instant QR codes, live photo feeds, guest galleries, and fast bulk downloads.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

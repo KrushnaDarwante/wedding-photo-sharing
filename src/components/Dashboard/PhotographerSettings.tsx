@@ -158,20 +158,20 @@ export const PhotographerSettings: React.FC = () => {
         </form>
       </div>
 
-      {/* Storage and Plan Tier */}
+      {/* Studio Owner Infrastructure & Storage */}
       <div className="bg-white rounded-2xl p-7 border border-[#E8E2D8] shadow-sm space-y-4">
         <h3 className="font-serif-luxury text-xl font-bold text-slate-900 flex items-center gap-2">
           <Award className="w-5 h-5 text-[#9A7B4F]" />
-          <span>Subscription & Storage Capacity</span>
+          <span>Studio Infrastructure & Cloud Storage</span>
         </h3>
 
         <div className="flex items-center justify-between p-4 bg-[#FAF8F5] rounded-xl border border-[#E8DFC8]">
           <div>
             <div className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
-              Current Plan: <span className="text-[#9A7B4F] font-bold">{photographer?.plan.toUpperCase()}</span>
+              Studio Account: <span className="text-[#9A7B4F] font-bold">LUMIÈRE STUDIO OWNER</span>
             </div>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Unlimited wedding galleries · Unlimited QR guest scans · Priority HD download CDN
+              Unlimited wedding galleries · Unlimited QR guest scans · Zero-egress Cloud CDN delivery
             </p>
           </div>
         </div>

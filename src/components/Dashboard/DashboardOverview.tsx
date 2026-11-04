@@ -66,8 +66,8 @@ export const DashboardOverview: React.FC = () => {
               <h1 className="font-serif-luxury text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
                 {photographer?.businessName || 'Lumière Wedding Studios'}
               </h1>
-              <span className="text-[10px] font-bold text-amber-900 bg-[#FAF5EB] border border-[#E8DFC8] px-2 py-0.5 rounded-full uppercase">
-                {photographer?.plan || 'PRO'}
+              <span className="text-[10px] font-bold text-amber-900 bg-[#FAF5EB] border border-[#E8DFC8] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Studio Owner
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">

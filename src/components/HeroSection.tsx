@@ -4,7 +4,7 @@ import { generateQRCodeDataUrl } from '../lib/qrHelper';
 import { ArrowRight, QrCode, ShieldCheck, Zap, DownloadCloud, Sparkles } from 'lucide-react';
 
 interface HeroSectionProps {
-  onOpenAuth: (mode?: 'login' | 'register') => void;
+  onOpenAuth: (mode?: 'login' | 'forgot') => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
@@ -32,7 +32,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
     if (photographer) {
       setCurrentView({ type: 'dashboard' });
     } else {
-      onOpenAuth('register');
+      onOpenAuth('login');
     }
   };
 
@@ -48,9 +48,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
           {/* Left Column: Typographic Hierarchy */}
           <div className="lg:col-span-7 space-y-6">
             <div className="flex items-center gap-2 text-xs font-medium text-[#9A7B4F] tracking-wide uppercase">
-              <span>Wedding Photo SaaS</span>
+              <span>Lumière Wedding Studios</span>
               <span aria-hidden="true">·</span>
-              <span>For Professional Photographers</span>
+              <span>Dedicated Wedding Platform</span>
               <span aria-hidden="true">·</span>
               <span>Instant QR Delivery</span>
             </div>
@@ -60,7 +60,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
             </h1>
 
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-              Photographers upload curated, high-definition wedding photos in real-time. Guests simply scan their table QR code to view and download full-resolution memories—with zero apps, zero login friction, and strict photographer-only upload security.
+              Our studio uploads curated, high-definition wedding photos in real-time. Guests simply scan their reception table QR code to view and download full-resolution memories—with zero apps, zero login friction, and strict photographer-only upload security.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -68,7 +68,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
                 onClick={handlePhotographerAction}
                 className="px-6 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-[#1E1B18] to-[#36322D] hover:from-[#110F0D] hover:to-[#221F1B] rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 group cursor-pointer"
               >
-                <span>{photographer ? 'Go to Studio Dashboard' : 'Launch Photographer Studio'}</span>
+                <span>{photographer ? 'Go to Studio Dashboard' : 'Studio Owner Portal'}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
 

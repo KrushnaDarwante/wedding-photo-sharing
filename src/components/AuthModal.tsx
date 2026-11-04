@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useWedding } from '../context/WeddingContext';
-import { X, Sparkles, Mail, Lock, Building, ArrowRight } from 'lucide-react';
+import { STUDIO_OWNER_EMAIL } from '../utils/pureLogic';
+import { X, Sparkles, Mail, Lock, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMode?: 'login' | 'register' | 'forgot';
+  initialMode?: 'login' | 'forgot';
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -13,11 +14,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   initialMode = 'login'
 }) => {
-  const { login, register, loginAsDemo } = useWedding();
-  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
-  const [email, setEmail] = useState('');
+  const { login, loginAsDemo, requestPasswordReset } = useWedding();
+  const [mode, setMode] = useState<'login' | 'forgot'>(initialMode);
+  const [email, setEmail] = useState(STUDIO_OWNER_EMAIL);
   const [password, setPassword] = useState('');
-  const [studioName, setStudioName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -38,18 +38,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         } else {
           setError(res.error || 'Invalid credentials.');
         }
-      } else if (mode === 'register') {
-        const res = await register(email, password, studioName);
-        if (res.success) {
-          onClose();
-        } else {
-          setError(res.error || 'Registration failed.');
-        }
       } else if (mode === 'forgot') {
-        if (!email || !email.includes('@')) {
-          setError('Please provide a valid registered email address.');
+        const res = await requestPasswordReset(email);
+        if (res.success) {
+          setSuccessMsg(res.message || 'Password reset link sent to your email.');
         } else {
-          setSuccessMsg(`A password reset link has been dispatched to ${email}. Check your inbox!`);
+          setError(res.error || 'Failed to dispatch reset email.');
         }
       }
     } finally {
@@ -74,18 +68,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </button>
 
         <div className="mb-6">
-          <div className="text-xs font-semibold text-[#9A7B4F] uppercase tracking-wider mb-1">
-            Photographer Portal
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#9A7B4F] uppercase tracking-wider mb-1">
+            <ShieldCheck className="w-4 h-4 text-[#9A7B4F]" />
+            <span>Studio Owner Portal</span>
           </div>
           <h2 className="font-serif-luxury text-2xl font-bold text-slate-900">
-            {mode === 'login' && 'Sign in to your studio'}
-            {mode === 'register' && 'Create your studio account'}
-            {mode === 'forgot' && 'Reset your password'}
+            {mode === 'login' && 'Owner Sign In'}
+            {mode === 'forgot' && 'Reset Owner Password'}
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            {mode === 'login' && 'Manage your wedding galleries, QR codes, and photo uploads.'}
-            {mode === 'register' && 'Start delivering instant QR galleries to couples and wedding guests.'}
-            {mode === 'forgot' && 'Enter your email to receive recovery instructions.'}
+            {mode === 'login' && 'Administrative access for Lumière Wedding Studios to manage wedding galleries, QR cards, and uploads.'}
+            {mode === 'forgot' && 'Enter your registered studio owner email address to receive password reset instructions.'}
           </p>
         </div>
 
@@ -94,10 +87,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div>
             <div className="text-xs font-semibold text-[#8B6D43] flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Instant Studio Preview</span>
+              <span>Instant Studio Owner Access</span>
             </div>
             <p className="text-[11px] text-slate-600 mt-0.5">
-              Log in as Clara (Lumière Wedding Studios) with preloaded events
+              Log in as Clara Dupont (Studio Owner) with full dashboard privileges
             </p>
           </div>
           <button
@@ -105,7 +98,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             onClick={handleDemoClick}
             className="px-3 py-1.5 text-xs font-semibold text-white bg-[#9A7B4F] hover:bg-[#85673E] rounded-lg transition-colors shrink-0 shadow-sm cursor-pointer"
           >
-            Demo Login
+            Quick Access
           </button>
         </div>
 
@@ -122,28 +115,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'register' && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Studio or Photographer Name
-              </label>
-              <div className="relative">
-                <Building className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  required
-                  value={studioName}
-                  onChange={(e) => setStudioName(e.target.value)}
-                  placeholder="e.g. Lumière Wedding Films"
-                  className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#9A7B4F] bg-slate-50/50"
-                />
-              </div>
-            </div>
-          )}
-
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Email Address
+              Studio Owner Email
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -152,7 +126,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="photographer@studio.com"
+                placeholder="clara@lumierevows.com"
                 className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#9A7B4F] bg-slate-50/50"
               />
             </div>
@@ -164,15 +138,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <label className="block text-xs font-semibold text-slate-700">
                   Password
                 </label>
-                {mode === 'login' && (
-                  <button
-                    type="button"
-                    onClick={() => { setMode('forgot'); setError(null); }}
-                    className="text-[11px] text-[#9A7B4F] hover:underline cursor-pointer"
-                  >
-                    Forgot password?
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => { setMode('forgot'); setError(null); }}
+                  className="text-[11px] text-[#9A7B4F] hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  <KeyRound className="w-3 h-3" />
+                  <span>Forgot password?</span>
+                </button>
               </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -194,38 +167,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             className="w-full py-3 px-4 text-xs font-semibold text-white bg-gradient-to-r from-[#1E1B18] to-[#36322D] hover:from-[#110F0D] hover:to-[#221F1B] rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <span>
-              {loading ? 'Processing...' : mode === 'login' ? 'Sign In' : mode === 'register' ? 'Create Studio Account' : 'Send Reset Link'}
+              {loading ? 'Processing...' : mode === 'login' ? 'Sign In to Studio' : 'Dispatch Password Reset Link'}
             </span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </form>
 
         <div className="mt-6 pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
-          {mode === 'login' && (
-            <p>
-              New to AuraWed?{' '}
-              <button
-                type="button"
-                onClick={() => { setMode('register'); setError(null); }}
-                className="font-semibold text-[#9A7B4F] hover:underline cursor-pointer"
-              >
-                Create studio account
-              </button>
-            </p>
-          )}
-          {mode === 'register' && (
-            <p>
-              Already have an account?{' '}
-              <button
-                type="button"
-                onClick={() => { setMode('login'); setError(null); }}
-                className="font-semibold text-[#9A7B4F] hover:underline cursor-pointer"
-              >
-                Sign in
-              </button>
-            </p>
-          )}
-          {mode === 'forgot' && (
+          {mode === 'forgot' ? (
             <p>
               Remembered your password?{' '}
               <button
@@ -233,8 +182,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 onClick={() => { setMode('login'); setError(null); }}
                 className="font-semibold text-[#9A7B4F] hover:underline cursor-pointer"
               >
-                Return to sign in
+                Return to owner sign in
               </button>
+            </p>
+          ) : (
+            <p className="text-[11px] text-slate-400">
+              Private portal for Lumière Wedding Studios. Guests do not need accounts.
             </p>
           )}
         </div>

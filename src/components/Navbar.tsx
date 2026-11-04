@@ -3,7 +3,7 @@ import { useWedding } from '../context/WeddingContext';
 import { Camera, Sparkles, LogOut, LayoutDashboard, QrCode } from 'lucide-react';
 
 interface NavbarProps {
-  onOpenAuth: (mode?: 'login' | 'register') => void;
+  onOpenAuth: (mode?: 'login' | 'forgot') => void;
   onOpenSupabaseConfig: () => void;
 }
 
@@ -72,12 +72,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenSupabaseConfig
             onClick={() => {
               if (currentView.type !== 'home') setCurrentView({ type: 'home' });
               setTimeout(() => {
-                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' });
               }, 50);
             }}
             className="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
-            Pricing
+            Studio Experience
           </button>
           <button
             onClick={onOpenSupabaseConfig}
@@ -117,21 +117,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenSupabaseConfig
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => onOpenAuth('login')}
-                className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-[#EFEAE1]/60 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => onOpenAuth('register')}
-                className="px-4 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-[#9A7B4F] to-[#B39364] hover:from-[#8A6D43] hover:to-[#A38356] rounded-xl shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-                <span>Photographer Portal</span>
-              </button>
-            </div>
+            <button
+              onClick={() => onOpenAuth('login')}
+              className="px-4 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-[#9A7B4F] to-[#B39364] hover:from-[#8A6D43] hover:to-[#A38356] rounded-xl shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+              <span>Studio Owner Login</span>
+            </button>
           )}
         </div>
       </div>

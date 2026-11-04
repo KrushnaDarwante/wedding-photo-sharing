@@ -14,13 +14,13 @@ import { GuestGalleryView } from './components/GuestGallery/GuestGalleryView';
 
 function AppContent() {
   const { currentView } = useWedding();
-  const [authModalState, setAuthModalState] = useState<{ isOpen: boolean; mode: 'login' | 'register' | 'forgot' }>({
+  const [authModalState, setAuthModalState] = useState<{ isOpen: boolean; mode: 'login' | 'forgot' }>({
     isOpen: false,
     mode: 'login'
   });
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
-  const openAuth = (mode: 'login' | 'register' | 'forgot' = 'login') => {
+  const openAuth = (mode: 'login' | 'forgot' = 'login') => {
     setAuthModalState({ isOpen: true, mode });
   };
 

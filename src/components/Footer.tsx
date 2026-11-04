@@ -25,10 +25,10 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAuth, onOpenSupabaseConfig
               </span>
             </div>
             <p className="text-xs text-[#B5A998] leading-relaxed max-w-sm">
-              The premium wedding photo sharing platform built exclusively for professional photographers and their couples. Instant QR codes, live reception feeds, and full-resolution bulk downloads.
+              The dedicated wedding photo sharing platform built exclusively for Lumière Wedding Studios and our wedding couples. Instant QR codes, live reception feeds, and full-resolution bulk downloads.
             </p>
             <div className="text-[11px] text-[#8E8272] flex items-center gap-1.5 pt-1">
-              <span>Strict Rule: Only photographers upload</span>
+              <span>Strict Rule: Only studio owner uploads</span>
               <span aria-hidden="true">·</span>
               <span>Guests enjoy read-only galleries</span>
             </div>
@@ -66,12 +66,12 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAuth, onOpenSupabaseConfig
                   onClick={() => {
                     setCurrentView({ type: 'home' });
                     setTimeout(() => {
-                      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' });
                     }, 50);
                   }}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
-                  Pricing & Plans
+                  Studio Experience
                 </button>
               </li>
               <li>
@@ -86,10 +86,10 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAuth, onOpenSupabaseConfig
             </ul>
           </div>
 
-          {/* Photographer Studio */}
+          {/* Studio Owner Portal */}
           <div className="space-y-3">
             <h4 className="text-xs font-semibold text-white uppercase tracking-wider">
-              Photographer Portal
+              Studio Owner
             </h4>
             <ul className="space-y-2 text-xs text-[#B5A998]">
               <li>
@@ -97,7 +97,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAuth, onOpenSupabaseConfig
                   onClick={() => onOpenAuth()}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
-                  Studio Login
+                  Studio Owner Login
                 </button>
               </li>
               <li>

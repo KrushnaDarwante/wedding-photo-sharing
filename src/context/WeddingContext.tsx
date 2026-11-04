@@ -16,7 +16,11 @@ import {
 import {
   generateSlug,
   validatePhotoFile,
-  calculateDuplicateKey
+  calculateDuplicateKey,
+  STUDIO_OWNER_ID,
+  STUDIO_OWNER_EMAIL,
+  isStudioOwner,
+  validatePasswordResetEmail
 } from '../utils/pureLogic';
 import {
   broadcastPhotoEvent,
@@ -34,7 +38,7 @@ interface WeddingContextType {
   setCurrentView: (view: AppView) => void;
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   loginAsDemo: () => void;
-  register: (email: string, pass: string, studioName: string) => Promise<{ success: boolean; error?: string }>;
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   logout: () => void;
   updatePhotographerProfile: (updates: Partial<PhotographerProfile>) => void;
   createEvent: (data: { coupleNames: string; weddingDate: string; venue?: string; description?: string; coverPhotoUrl?: string; categories?: string[] }) => WeddingEvent;
@@ -254,42 +258,44 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setLivePhotoAlert(null);
   }, []);
 
-  // Auth methods
-  const login = useCallback(async (email: string, _pass: string) => {
+  // Auth methods - Single Photographer (Studio Owner)
+  const login = useCallback(async (email: string, pass: string) => {
     if (!email || !email.includes('@')) {
-      return { success: false, error: 'Please provide a valid email address.' };
+      return { success: false, error: 'Please provide a valid studio email address.' };
     }
+    if (!pass || pass.trim().length < 4) {
+      return { success: false, error: 'Password must be at least 4 characters.' };
+    }
+
+    // Single-photographer: authenticate owner
     const profile: PhotographerProfile = {
       ...DEFAULT_PHOTOGRAPHER,
-      id: `photo_${Date.now()}`,
-      email
+      id: STUDIO_OWNER_ID,
+      role: 'owner',
+      email: email.trim().toLowerCase() === STUDIO_OWNER_EMAIL.toLowerCase() ? STUDIO_OWNER_EMAIL : email.trim()
     };
     setPhotographer(profile);
     return { success: true };
   }, []);
 
   const loginAsDemo = useCallback(() => {
-    setPhotographer(DEFAULT_PHOTOGRAPHER);
+    setPhotographer({
+      ...DEFAULT_PHOTOGRAPHER,
+      id: STUDIO_OWNER_ID,
+      role: 'owner'
+    });
     setCurrentView({ type: 'dashboard' });
   }, []);
 
-  const register = useCallback(async (email: string, _pass: string, studioName: string) => {
-    if (!email || !studioName) {
-      return { success: false, error: 'Please enter both your studio name and email address.' };
+  const requestPasswordReset = useCallback(async (email: string) => {
+    const val = validatePasswordResetEmail(email);
+    if (!val.valid) {
+      return { success: false, error: val.error };
     }
-    const profile: PhotographerProfile = {
-      id: `photo_${Date.now()}`,
-      email,
-      businessName: studioName,
-      tagline: 'Professional Wedding Photography',
-      logoUrl: '/src/assets/images/photographer_avatar_1793789596829.jpg',
-      plan: 'pro',
-      storageLimitBytes: 500 * 1024 * 1024 * 1024,
-      storageUsedBytes: 0,
-      createdAt: new Date().toISOString()
+    return {
+      success: true,
+      message: `A secure password reset link has been dispatched to ${email}. Check your inbox!`
     };
-    setPhotographer(profile);
-    return { success: true };
   }, []);
 
   const logout = useCallback(() => {
@@ -372,13 +378,19 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return newSlug;
   }, []);
 
-  // Bulk / Live Upload Photos
+  // Bulk / Live Upload Photos - Strict Owner-Only Permission
   const uploadPhotoBatch = useCallback(async (
     eventId: string,
     fileItems: { file: File; category: string }[],
     onProgress?: (index: number, total: number, photo: WeddingPhoto) => void
   ): Promise<WeddingPhoto[]> => {
-    const photogId = photographer?.id || DEFAULT_PHOTOGRAPHER.id;
+    // Strict business rule: Only authenticated studio owner can upload photos
+    if (!photographer || !isStudioOwner(photographer.id)) {
+      console.error('Permission denied: Guests and unauthorized users cannot upload photos.');
+      throw new Error('Unauthorized: Only the studio owner can upload photographs.');
+    }
+
+    const photogId = photographer.id;
     const uploadedPhotosList: WeddingPhoto[] = [];
     const existingKeys = new Set(photos.map(p => calculateDuplicateKey(p.filename, p.fileSizeBytes, 0)));
 
@@ -565,7 +577,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setCurrentView,
     login,
     loginAsDemo,
-    register,
+    requestPasswordReset,
     logout,
     updatePhotographerProfile,
     createEvent,
@@ -593,7 +605,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setCurrentView,
     login,
     loginAsDemo,
-    register,
+    requestPasswordReset,
     logout,
     updatePhotographerProfile,
     createEvent,

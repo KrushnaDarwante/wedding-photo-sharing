@@ -5,12 +5,13 @@ export interface PhotographerProfile {
   id: string;
   email: string;
   businessName: string;
+  role?: 'owner';
   tagline?: string;
   logoUrl?: string;
   phone?: string;
   website?: string;
   instagram?: string;
-  plan: 'starter' | 'pro' | 'agency';
+  plan?: 'starter' | 'pro' | 'agency' | 'studio-owner';
   storageLimitBytes: number;
   storageUsedBytes: number;
   storageOriginalsBytes?: number;
@@ -121,7 +122,7 @@ export interface MultiVolumeZipArchive {
 
 export type AppView = 
   | { type: 'home' }
-  | { type: 'auth'; initialMode?: 'login' | 'register' | 'forgot' }
+  | { type: 'auth'; initialMode?: 'login' | 'forgot' }
   | { type: 'dashboard'; tab?: 'events' | 'create-event' | 'settings' | 'analytics' }
   | { type: 'event-detail'; eventId: string; tab?: 'photos' | 'qr' | 'analytics' | 'settings' }
   | { type: 'guest-gallery'; eventSlug: string; photoId?: string };

@@ -6,6 +6,8 @@ import {
   validatePhotoFile,
   calculateDuplicateKey,
   isGuestAllowedToUpload,
+  isStudioOwner,
+  validatePasswordResetEmail,
   isPhotographerAuthorized,
   filterPhotos
 } from './pureLogic.ts';
@@ -57,11 +59,24 @@ test('isGuestAllowedToUpload strictly enforces business rule: guests NEVER uploa
   assert.equal(isGuestAllowedToUpload(), false);
 });
 
-test('isPhotographerAuthorized verifies event ownership correctly', () => {
-  assert.equal(isPhotographerAuthorized('user_123', 'user_123'), true);
-  assert.equal(isPhotographerAuthorized('user_999', 'user_123'), false);
-  assert.equal(isPhotographerAuthorized(null, 'user_123'), false);
-  assert.equal(isPhotographerAuthorized(undefined, 'user_123'), false);
+test('isStudioOwner and isPhotographerAuthorized enforce single photographer authorization', () => {
+  assert.equal(isStudioOwner('photo_stud_01'), true);
+  assert.equal(isStudioOwner('guest_user'), false);
+  assert.equal(isStudioOwner(null), false);
+  assert.equal(isStudioOwner(undefined), false);
+
+  assert.equal(isPhotographerAuthorized('photo_stud_01'), true);
+  assert.equal(isPhotographerAuthorized('random_other_photographer'), false);
+  assert.equal(isPhotographerAuthorized(null), false);
+  assert.equal(isPhotographerAuthorized(undefined), false);
+});
+
+test('validatePasswordResetEmail validates valid emails and catches invalid ones', () => {
+  assert.equal(validatePasswordResetEmail('clara@lumierevows.com').valid, true);
+  assert.equal(validatePasswordResetEmail('owner@studio.co.uk').valid, true);
+  assert.equal(validatePasswordResetEmail('invalid-email').valid, false);
+  assert.equal(validatePasswordResetEmail('').valid, false);
+  assert.equal(validatePasswordResetEmail('   ').valid, false);
 });
 
 test('filterPhotos filters by category, keyword search and favorites', () => {

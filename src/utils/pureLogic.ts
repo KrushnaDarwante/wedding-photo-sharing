@@ -72,6 +72,9 @@ export function calculateDuplicateKey(name: string, size: number, lastModified: 
   return `${name.trim().toLowerCase()}_${size}_${lastModified}`;
 }
 
+export const STUDIO_OWNER_ID = 'photo_stud_01';
+export const STUDIO_OWNER_EMAIL = 'clara@lumierevows.com';
+
 /**
  * Core business rule: Guests must NEVER be granted upload privileges.
  */
@@ -80,14 +83,38 @@ export function isGuestAllowedToUpload(): boolean {
 }
 
 /**
- * Check if a photographer user owns the given event.
+ * Single-Photographer Architecture:
+ * Check if the current user is the authorized studio owner.
+ */
+export function isStudioOwner(userId: string | null | undefined): boolean {
+  if (!userId) return false;
+  return userId === STUDIO_OWNER_ID;
+}
+
+/**
+ * Validate email address for password recovery.
+ */
+export function validatePasswordResetEmail(email: string): { valid: boolean; error?: string } {
+  if (!email || typeof email !== 'string') {
+    return { valid: false, error: 'Email address is required.' };
+  }
+  const trimmed = email.trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(trimmed)) {
+    return { valid: false, error: 'Please enter a valid email address.' };
+  }
+  return { valid: true };
+}
+
+/**
+ * Check if the active session is authorized to manage events/photos.
+ * In the single-photographer platform, only the studio owner has authorization.
  */
 export function isPhotographerAuthorized(
   currentUserId: string | null | undefined,
-  eventOwnerId: string
+  _eventOwnerId?: string
 ): boolean {
-  if (!currentUserId || !eventOwnerId) return false;
-  return currentUserId === eventOwnerId;
+  return isStudioOwner(currentUserId);
 }
 
 /**

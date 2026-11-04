@@ -15,12 +15,13 @@ export const DEFAULT_PHOTOGRAPHER: PhotographerProfile = {
   id: 'photo_stud_01',
   email: 'clara@lumierevows.com',
   businessName: 'Lumière Wedding Studios',
+  role: 'owner',
   tagline: 'Fine-art editorial wedding cinematography & photography',
   logoUrl: '/src/assets/images/photographer_avatar_1793789596829.jpg',
   phone: '+1 (555) 782-9421',
   website: 'https://lumierevows.com',
   instagram: '@lumierevows',
-  plan: 'pro',
+  plan: 'studio-owner',
   storageLimitBytes: 500 * 1024 * 1024 * 1024, // 500 GB
   storageUsedBytes: 42.6 * 1024 * 1024 * 1024, // 42.6 GB
   createdAt: '2025-01-15T09:00:00.000Z'

@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+﻿import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Read environment variables or custom local storage override
 const envSupabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';

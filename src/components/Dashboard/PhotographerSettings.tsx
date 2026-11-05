@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { formatBytes } from '../../utils/pureLogic';
 import { Building, Globe, Instagram, Phone, Mail, Award, Check, HardDrive } from 'lucide-react';

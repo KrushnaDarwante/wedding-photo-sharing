@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Camera, Heart } from 'lucide-react';
 import { useWedding } from '../context/WeddingContext';
 

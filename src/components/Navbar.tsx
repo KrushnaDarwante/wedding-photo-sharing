@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useWedding } from '../context/WeddingContext';
 import { Camera, Sparkles, LogOut, LayoutDashboard, QrCode } from 'lucide-react';
 

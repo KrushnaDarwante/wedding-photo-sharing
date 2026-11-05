@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { QrCode, UploadCloud, Download, CheckCircle2 } from 'lucide-react';
 
 export const HowItWorks: React.FC = () => {

@@ -56,7 +56,7 @@ export const DashboardOverview: React.FC = () => {
       <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#E8E2D8] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <img
-            src={photographer?.logoUrl || '/src/assets/images/photographer_avatar_1793789596829.jpg'}
+            src={photographer?.logoUrl || '/assets/images/photographer_avatar_1793789596829.jpg'}
             alt={photographer?.businessName}
             className="w-16 h-16 rounded-2xl object-cover border border-slate-200 shadow-sm"
             referrerPolicy="no-referrer"

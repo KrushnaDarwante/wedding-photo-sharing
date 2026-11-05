@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { WeddingPhoto, WeddingEvent, MultiVolumeZipArchive } from '../../types';
 import { formatBytes } from '../../utils/pureLogic';
 import { downloadPhotosAsZip } from '../../lib/zipHelper';

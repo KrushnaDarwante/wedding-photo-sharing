@@ -1,4 +1,4 @@
-export type ProcessingStatus = 'pending' | 'processing' | 'ready' | 'failed';
+﻿export type ProcessingStatus = 'pending' | 'processing' | 'ready' | 'failed';
 export type StorageProvider = 'r2' | 's3' | 'supabase' | 'local';
 
 export interface PhotographerProfile {

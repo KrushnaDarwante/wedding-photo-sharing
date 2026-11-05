@@ -6,8 +6,10 @@ import { SlideshowModal } from './SlideshowModal';
 import { ShareModal } from './ShareModal';
 import { BulkDownloadProgressModal } from './BulkDownloadProgressModal';
 import { MultiVolumeDownloadModal } from './MultiVolumeDownloadModal';
+import { GalleryImageCard } from './GalleryImageCard';
 import { downloadPhotosAsZip, downloadSinglePhoto } from '../../lib/zipHelper';
 import { filterPhotos } from '../../utils/pureLogic';
+import { normalizeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../../lib/imageHelper';
 import {
   Heart,
   Download,
@@ -305,12 +307,15 @@ export const GuestGalleryView: React.FC<GuestGalleryViewProps> = ({
 
             {/* Right Column: Hero thumbnail & live badge */}
             <div className="lg:col-span-4 relative">
-              <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg border border-[#E8E2D8]">
+              <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg border border-[#E8E2D8] bg-[#FAF6F0]">
                 <img
-                  src={event.coverPhotoUrl}
+                  src={normalizeImageUrl(event.coverPhotoUrl)}
                   alt={event.coupleNames}
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = FALLBACK_IMAGE_DATA_URI;
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4 text-white">
                   <div className="flex items-center justify-between w-full text-xs">
@@ -460,101 +465,22 @@ export const GuestGalleryView: React.FC<GuestGalleryViewProps> = ({
           </div>
         ) : (
           <>
-            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-            {displayedPhotos.map((photo) => {
-              const isFav = isFavorite(photo.id);
-              const isSelected = selectedPhotoIds.has(photo.id);
-
-              return (
-                <div
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {displayedPhotos.map((photo) => (
+                <GalleryImageCard
                   key={photo.id}
-                  className={`break-inside-avoid relative rounded-2xl overflow-hidden bg-white border shadow-sm hover:shadow-md transition-all group ${
-                    isSelected ? 'border-[#9A7B4F] ring-2 ring-[#9A7B4F]/30' : 'border-[#E8E2D8]'
-                  }`}
-                >
-                  {/* Photo Image */}
-                  <div
-                    onClick={() => {
-                      if (isSelectionMode) {
-                        toggleSelectPhoto(photo.id);
-                      } else {
-                        setActiveLightboxPhotoId(photo.id);
-                      }
-                    }}
-                    className="cursor-pointer relative overflow-hidden bg-slate-100"
-                  >
-                    <img
-                      src={photo.thumbnailUrl}
-                      alt={photo.caption || photo.filename}
-                      className="w-full h-auto object-cover group-hover:scale-102 transition-transform duration-500"
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                    />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3 pointer-events-none" />
-                  </div>
-
-                  {/* Top Floating Controls: Select Checkbox (if in select mode) or Favorite Heart */}
-                  <div className="absolute top-3 left-3 z-10">
-                    {isSelectionMode ? (
-                      <button
-                        onClick={() => toggleSelectPhoto(photo.id)}
-                        className="p-1.5 rounded-lg bg-black/50 text-white backdrop-blur-sm cursor-pointer"
-                      >
-                        {isSelected ? (
-                          <CheckSquare className="w-4 h-4 text-amber-300" />
-                        ) : (
-                          <Square className="w-4 h-4 text-white" />
-                        )}
-                      </button>
-                    ) : (
-                      <span className="text-[10px] font-semibold bg-black/60 text-white backdrop-blur-sm px-2 py-0.5 rounded-md">
-                        {photo.category}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Top Right Floating Actions: Heart, Download, Share */}
-                  <div className="absolute top-3 right-3 z-10 flex items-center gap-1">
-                    <button
-                      onClick={() => toggleFavorite(photo.id)}
-                      className={`p-2 rounded-xl backdrop-blur-sm transition-all cursor-pointer ${
-                        isFav
-                          ? 'bg-red-500 text-white shadow-md'
-                          : 'bg-black/40 hover:bg-black/60 text-white opacity-0 group-hover:opacity-100'
-                      }`}
-                      title={isFav ? 'Remove from Favourites' : 'Add to Favourites'}
-                    >
-                      <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-white' : ''}`} />
-                    </button>
-
-                    <button
-                      onClick={() => downloadSinglePhoto(photo)}
-                      className="p-2 rounded-xl bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                      title="Download Full Resolution HD"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                    </button>
-
-                    <button
-                      onClick={() => setSharePhoto(photo)}
-                      className="p-2 rounded-xl bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                      title="Share Photo"
-                    >
-                      <Share2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Caption & Metadata on hover/focus */}
-                  {photo.caption && (
-                    <div className="p-3 bg-white text-xs text-slate-700 font-medium border-t border-slate-100">
-                      {photo.caption}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  photo={photo}
+                  isSelected={selectedPhotoIds.has(photo.id)}
+                  isFav={isFavorite(photo.id)}
+                  isSelectionMode={isSelectionMode}
+                  onSelect={toggleSelectPhoto}
+                  onOpenLightbox={(photoId) => setActiveLightboxPhotoId(photoId)}
+                  onToggleFavorite={toggleFavorite}
+                  onDownload={downloadSinglePhoto}
+                  onShare={(p) => setSharePhoto(p)}
+                />
+              ))}
+            </div>
 
           {/* Progressive Pagination Controls for Large Collections */}
           {filteredPhotos.length > visibleCount && (

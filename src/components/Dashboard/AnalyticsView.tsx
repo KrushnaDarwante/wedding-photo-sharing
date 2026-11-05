@@ -2,6 +2,7 @@ import React from 'react';
 import { WeddingEvent } from '../../types';
 import { useWedding } from '../../context/WeddingContext';
 import { formatBytes } from '../../utils/pureLogic';
+import { normalizeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../../lib/imageHelper';
 import { Eye, DownloadCloud, HardDrive, Users, BarChart3, TrendingUp } from 'lucide-react';
 
 interface AnalyticsViewProps {
@@ -140,11 +141,14 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ event }) => {
             {topDownloaded.map(photo => (
               <div key={photo.id} className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
                 <img
-                  src={photo.thumbnailUrl}
-                  alt={photo.filename}
+                  src={normalizeImageUrl(photo.thumbnailUrl || photo.originalUrl)}
+                  alt=""
                   className="w-full aspect-video object-cover"
                   loading="lazy"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = FALLBACK_IMAGE_DATA_URI;
+                  }}
                 />
                 <div className="p-2.5 text-[11px] text-slate-600">
                   <p className="font-medium truncate">{photo.filename}</p>

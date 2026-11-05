@@ -43,7 +43,7 @@ export const PhotographerBenefits: React.FC = () => {
             <div className="pt-2">
               <div className="p-5 bg-white rounded-2xl border border-[#E8E2D8] shadow-sm flex items-start gap-4">
                 <img
-                  src="/src/assets/images/photographer_avatar_1793789596829.jpg"
+                  src="/assets/images/photographer_avatar_1793789596829.jpg"
                   alt="Clara Dupont"
                   className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-200"
                   referrerPolicy="no-referrer"

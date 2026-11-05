@@ -12,15 +12,15 @@ interface CreateEventModalProps {
 const PRESET_COVERS = [
   {
     name: 'Tuscan Estate Sunset',
-    url: '/src/assets/images/hero_wedding_couple_1793789594998.jpg'
+    url: '/assets/images/hero_wedding_couple_1793789594998.jpg'
   },
   {
     name: 'Royal Heritage Golden',
-    url: '/src/assets/images/sample_wedding_haldi_1793789596208.jpg'
+    url: '/assets/images/sample_wedding_haldi_1793789596208.jpg'
   },
   {
     name: 'Candlelight Reception',
-    url: '/src/assets/images/wedding_reception_table_1793789596043.jpg'
+    url: '/assets/images/wedding_reception_table_1793789596043.jpg'
   }
 ];
 

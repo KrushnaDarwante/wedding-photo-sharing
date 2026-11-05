@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { WeddingEvent, PhotographerProfile } from '../types';
 import { Camera, Sparkles, Printer, X } from 'lucide-react';
 import { printElement } from '../lib/qrHelper';

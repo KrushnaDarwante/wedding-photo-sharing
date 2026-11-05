@@ -102,7 +102,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
           <div className="lg:col-span-5 relative">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-[#E8E2D8] bg-white group">
               <img
-                src="/src/assets/images/hero_wedding_couple_1793789594998.jpg"
+                src="/assets/images/hero_wedding_couple_1793789594998.jpg"
                 alt="Elena and Christian Luxury Wedding"
                 className="w-full h-[440px] sm:h-[480px] object-cover group-hover:scale-102 transition-transform duration-700"
                 referrerPolicy="no-referrer"

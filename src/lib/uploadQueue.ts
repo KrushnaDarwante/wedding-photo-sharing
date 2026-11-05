@@ -1,4 +1,4 @@
-import { WeddingPhoto } from '../types';
+﻿import { WeddingPhoto } from '../types';
 import { createOptimizedThumbnail } from './imageHelper';
 import { verifyImageIntegrity } from './storageEngine';
 import { calculateDuplicateKey, validatePhotoFile } from '../utils/pureLogic';

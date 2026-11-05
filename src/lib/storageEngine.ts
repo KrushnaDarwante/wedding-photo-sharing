@@ -4,6 +4,7 @@
  */
 
 import { WeddingPhoto } from '../types';
+import { normalizeImageUrl } from './imageHelper';
 
 export interface StorageCostEstimate {
   storageProvider: 'Cloudflare R2' | 'AWS S3' | 'Supabase Storage';
@@ -117,12 +118,12 @@ export function calculateStorageCosts(params: {
  */
 export function getOptimizedImageUrl(photo: WeddingPhoto, size: 'thumb' | 'optimized' | 'original' = 'optimized'): string {
   if (size === 'thumb') {
-    return photo.cdnUrlThumb || photo.thumbnailUrl || photo.originalUrl;
+    return normalizeImageUrl(photo.cdnUrlThumb || photo.thumbnailUrl || photo.originalUrl);
   }
   if (size === 'optimized') {
-    return photo.cdnUrlOptimized || photo.optimizedUrl || photo.thumbnailUrl || photo.originalUrl;
+    return normalizeImageUrl(photo.cdnUrlOptimized || photo.optimizedUrl || photo.thumbnailUrl || photo.originalUrl);
   }
-  return photo.cdnUrlOriginal || photo.originalUrl;
+  return normalizeImageUrl(photo.cdnUrlOriginal || photo.originalUrl);
 }
 
 /**

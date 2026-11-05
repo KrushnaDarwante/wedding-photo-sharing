@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Pure helper functions and business rule validators for AuraWed.
  * Completely decoupled from React and DOM for high-speed deterministic unit testing.
  */

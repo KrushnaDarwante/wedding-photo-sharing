@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { WEDDING_CATEGORIES } from '../../lib/constants';
 import { formatBytes } from '../../utils/pureLogic';

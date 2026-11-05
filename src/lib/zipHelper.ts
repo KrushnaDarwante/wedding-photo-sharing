@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { WeddingPhoto } from '../types';
+import { normalizeImageUrl } from './imageHelper';
 
 export type ZipProgressCallback = (current: number, total: number, percent: number, status: string) => void;
 
@@ -7,8 +8,9 @@ export type ZipProgressCallback = (current: number, total: number, percent: numb
  * Trigger download of a single photo file directly in the browser.
  */
 export async function downloadSinglePhoto(photo: WeddingPhoto) {
+  const targetUrl = normalizeImageUrl(photo.originalUrl);
   try {
-    const response = await fetch(photo.originalUrl);
+    const response = await fetch(targetUrl);
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -21,7 +23,7 @@ export async function downloadSinglePhoto(photo: WeddingPhoto) {
   } catch (err) {
     console.warn('Direct blob fetch failed, falling back to direct anchor download:', err);
     const link = document.createElement('a');
-    link.href = photo.originalUrl;
+    link.href = targetUrl;
     link.download = photo.filename || `wedding-photo-${photo.id}.jpg`;
     link.target = '_blank';
     document.body.appendChild(link);
@@ -58,7 +60,8 @@ export async function downloadPhotosAsZip(
     );
 
     try {
-      const response = await fetch(photo.originalUrl);
+      const targetUrl = normalizeImageUrl(photo.originalUrl);
+      const response = await fetch(targetUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch photo ${photo.id}: ${response.statusText}`);
       }

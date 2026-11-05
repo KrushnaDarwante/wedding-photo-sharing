@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { WeddingEvent } from '../../types';
 import { useWedding } from '../../context/WeddingContext';
 import { generateQRCodeDataUrl, downloadQRCodePNG } from '../../lib/qrHelper';

@@ -3,6 +3,7 @@ import { WeddingPhoto, WeddingEvent } from '../../types';
 import { useWedding } from '../../context/WeddingContext';
 import { downloadSinglePhoto } from '../../lib/zipHelper';
 import { formatBytes } from '../../utils/pureLogic';
+import { normalizeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../../lib/imageHelper';
 import { ShareModal } from './ShareModal';
 import {
   X,
@@ -194,10 +195,13 @@ export const LightboxModal: React.FC<LightboxModalProps> = ({
             onClick={toggleZoom}
           >
             <img
-              src={currentPhoto.originalUrl}
-              alt={currentPhoto.caption || currentPhoto.filename}
-              className="max-w-full max-h-[82vh] object-contain rounded-lg shadow-2xl"
+              src={normalizeImageUrl(currentPhoto.originalUrl)}
+              alt=""
+              className="max-w-full max-h-[82vh] object-contain rounded-lg shadow-2xl transition-opacity duration-300"
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = FALLBACK_IMAGE_DATA_URI;
+              }}
             />
           </div>
 

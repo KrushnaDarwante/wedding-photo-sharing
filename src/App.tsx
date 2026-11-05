@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { WeddingProvider, useWedding } from './context/WeddingContext';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';

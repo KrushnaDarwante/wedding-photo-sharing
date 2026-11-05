@@ -4,6 +4,7 @@ import { useWedding } from '../../context/WeddingContext';
 import { WEDDING_CATEGORIES } from '../../lib/constants';
 import { formatBytes } from '../../utils/pureLogic';
 import { downloadSinglePhoto } from '../../lib/zipHelper';
+import { normalizeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../../lib/imageHelper';
 import {
   Trash2,
   Download,
@@ -164,11 +165,14 @@ export const EventPhotoManager: React.FC<EventPhotoManagerProps> = ({ eventId })
                 {/* Image Thumbnail Container */}
                 <div className="relative aspect-square overflow-hidden bg-slate-100">
                   <img
-                    src={photo.thumbnailUrl || photo.originalUrl}
-                    alt={photo.filename}
+                    src={normalizeImageUrl(photo.thumbnailUrl || photo.originalUrl)}
+                    alt=""
                     className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
                     loading="lazy"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = FALLBACK_IMAGE_DATA_URI;
+                    }}
                   />
 
                   {/* Checkbox overlay */}

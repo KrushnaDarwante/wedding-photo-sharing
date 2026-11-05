@@ -11,7 +11,8 @@ import {
   INITIAL_PHOTOS
 } from '../lib/constants';
 import {
-  createOptimizedThumbnail
+  createOptimizedThumbnail,
+  normalizeImageUrl
 } from '../lib/imageHelper';
 import {
   generateSlug,
@@ -75,7 +76,14 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [photographer, setPhotographer] = useState<PhotographerProfile | null>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.PHOTOGRAPHER);
-      return saved ? JSON.parse(saved) : DEFAULT_PHOTOGRAPHER;
+      if (saved) {
+        const parsed: PhotographerProfile = JSON.parse(saved);
+        return {
+          ...parsed,
+          logoUrl: normalizeImageUrl(parsed.logoUrl || DEFAULT_PHOTOGRAPHER.logoUrl)
+        };
+      }
+      return DEFAULT_PHOTOGRAPHER;
     } catch {
       return DEFAULT_PHOTOGRAPHER;
     }
@@ -85,7 +93,20 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [events, setEvents] = useState<WeddingEvent[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.EVENTS);
-      return saved ? JSON.parse(saved) : INITIAL_WEDDING_EVENTS;
+      if (saved) {
+        const parsed: WeddingEvent[] = JSON.parse(saved);
+        const initialMap = new Map(INITIAL_WEDDING_EVENTS.map(e => [e.id, e]));
+        return parsed.map(evt => {
+          const matchInitial = initialMap.get(evt.id);
+          return {
+            ...evt,
+            coverPhotoUrl: normalizeImageUrl(matchInitial?.coverPhotoUrl || evt.coverPhotoUrl),
+            totalPhotos: matchInitial ? matchInitial.totalPhotos : evt.totalPhotos,
+            categories: matchInitial?.categories || evt.categories
+          };
+        });
+      }
+      return INITIAL_WEDDING_EVENTS;
     } catch {
       return INITIAL_WEDDING_EVENTS;
     }
@@ -95,7 +116,30 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [photos, setPhotos] = useState<WeddingPhoto[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.PHOTOS);
-      return saved ? JSON.parse(saved) : INITIAL_PHOTOS;
+      if (saved) {
+        const parsed: WeddingPhoto[] = JSON.parse(saved);
+        const initialMap = new Map(INITIAL_PHOTOS.map(p => [p.id, p]));
+        return parsed.map(photo => {
+          const matchInitial = initialMap.get(photo.id);
+          if (matchInitial) {
+            return {
+              ...photo,
+              originalUrl: matchInitial.originalUrl,
+              thumbnailUrl: matchInitial.thumbnailUrl,
+              fileSizeBytes: matchInitial.fileSizeBytes,
+              category: matchInitial.category,
+              width: matchInitial.width,
+              height: matchInitial.height
+            };
+          }
+          return {
+            ...photo,
+            originalUrl: normalizeImageUrl(photo.originalUrl),
+            thumbnailUrl: normalizeImageUrl(photo.thumbnailUrl || photo.originalUrl)
+          };
+        });
+      }
+      return INITIAL_PHOTOS;
     } catch {
       return INITIAL_PHOTOS;
     }
@@ -328,7 +372,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       weddingDate: data.weddingDate,
       venue: data.venue || 'Private Wedding Estate',
       description: data.description || 'Welcome to our celebration gallery. Browse and download your favorite memories.',
-      coverPhotoUrl: data.coverPhotoUrl || '/src/assets/images/hero_wedding_couple_1793789594998.jpg',
+      coverPhotoUrl: normalizeImageUrl(data.coverPhotoUrl || '/assets/images/hero_wedding_couple_1793789594998.jpg'),
       isQrActive: true,
       totalPhotos: 0,
       totalViews: 0,

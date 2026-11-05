@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useWedding } from '../context/WeddingContext';
 import { STUDIO_OWNER_EMAIL } from '../utils/pureLogic';
 import { X, Sparkles, Mail, Lock, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { WeddingPhoto, WeddingEvent } from '../../types';
+import { normalizeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../../lib/imageHelper';
 import { X, Copy, Check, Share2, MessageCircle } from 'lucide-react';
 
 interface ShareModalProps {
@@ -82,10 +83,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         {photo && (
           <div className="mb-4 rounded-xl overflow-hidden aspect-video relative border border-slate-200">
             <img
-              src={photo.thumbnailUrl}
-              alt={photo.filename}
+              src={normalizeImageUrl(photo.thumbnailUrl || photo.originalUrl)}
+              alt=""
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = FALLBACK_IMAGE_DATA_URI;
+              }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-2.5 text-white text-xs">
               <span className="font-medium truncate">{photo.caption || photo.filename}</span>

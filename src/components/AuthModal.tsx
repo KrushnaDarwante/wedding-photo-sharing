@@ -14,9 +14,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   initialMode = 'login'
 }) => {
-  const { login, loginAsDemo, requestPasswordReset } = useWedding();
+  const { login, requestPasswordReset } = useWedding();
   const [mode, setMode] = useState<'login' | 'forgot'>(initialMode);
-  const [email, setEmail] = useState(STUDIO_OWNER_EMAIL);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -51,11 +51,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleDemoClick = () => {
-    loginAsDemo();
-    onClose();
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white rounded-2xl max-w-md w-full p-7 border border-[#E8E2D8] shadow-2xl relative">
@@ -68,8 +63,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </button>
 
         <div className="mb-6">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#9A7B4F] uppercase tracking-wider mb-1">
-            <ShieldCheck className="w-4 h-4 text-[#9A7B4F]" />
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#800020] uppercase tracking-wider mb-1">
+            <ShieldCheck className="w-4 h-4 text-[#C5A059]" />
             <span>Studio Owner Portal</span>
           </div>
           <h2 className="font-serif-luxury text-2xl font-bold text-slate-900">
@@ -77,29 +72,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             {mode === 'forgot' && 'Reset Owner Password'}
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            {mode === 'login' && 'Administrative access for Lumière Wedding Studios to manage wedding galleries, QR cards, and uploads.'}
+            {mode === 'login' && 'Administrative access for the studio owner to manage wedding galleries, QR cards, and uploads.'}
             {mode === 'forgot' && 'Enter your registered studio owner email address to receive password reset instructions.'}
           </p>
-        </div>
-
-        {/* Demo Studio Instant Login Banner */}
-        <div className="mb-5 p-3.5 bg-[#FAF5EB] rounded-xl border border-[#E8DFC8] flex items-center justify-between gap-3">
-          <div>
-            <div className="text-xs font-semibold text-[#8B6D43] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Instant Studio Owner Access</span>
-            </div>
-            <p className="text-[11px] text-slate-600 mt-0.5">
-              Log in as Clara Dupont (Studio Owner) with full dashboard privileges
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleDemoClick}
-            className="px-3 py-1.5 text-xs font-semibold text-white bg-[#9A7B4F] hover:bg-[#85673E] rounded-lg transition-colors shrink-0 shadow-sm cursor-pointer"
-          >
-            Quick Access
-          </button>
         </div>
 
         {error && (
@@ -126,7 +101,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="clara@lumierevows.com"
+                placeholder="owner@vedicvows.com"
                 className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#9A7B4F] bg-slate-50/50"
               />
             </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WeddingPhoto, WeddingEvent } from '../../types';
-import { normalizeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../../lib/imageHelper';
+import { generateIndianRoyalSvgFallback } from '../../utils/indianWeddingAssets';
 import {
   Play,
   Pause,
@@ -111,15 +111,20 @@ export const SlideshowModal: React.FC<SlideshowModalProps> = ({
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        <div className="w-full h-full flex items-center justify-center animate-fadeIn" key={currentPhoto.id}>
+        <div className="w-full h-full flex items-center justify-center animate-fadeIn key={currentPhoto.id}">
           <img
-            src={normalizeImageUrl(currentPhoto.originalUrl)}
-            alt=""
+            src={currentPhoto.originalUrl.replace(/^\/src\/assets\/images\//, '/images/')}
+            alt={currentPhoto.caption || currentPhoto.filename}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = generateIndianRoyalSvgFallback(
+                currentPhoto.category,
+                currentPhoto.caption || currentPhoto.filename,
+                event.coupleNames
+              );
+            }}
             className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl transition-all duration-700"
             referrerPolicy="no-referrer"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).src = FALLBACK_IMAGE_DATA_URI;
-            }}
           />
         </div>
 

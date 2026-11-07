@@ -249,3 +249,54 @@ CREATE TRIGGER tr_on_photo_deleted
   AFTER DELETE ON public.wedding_photos
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_photo_delete_stats();
+
+-- =========================================================================
+-- 8. SUPABASE STORAGE BUCKET & STORAGE OBJECT POLICIES
+-- Bucket: wedding-photos
+-- Photographers can upload, replace, or delete photos.
+-- Guests have public read/download permissions.
+-- =========================================================================
+
+-- Create public storage bucket if not exists
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'wedding-photos',
+  'wedding-photos',
+  TRUE,
+  52428800, -- 50MB per photo ceiling
+  ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/avif']
+)
+ON CONFLICT (id) DO UPDATE SET
+  public = TRUE,
+  file_size_limit = 52428800,
+  allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/avif'];
+
+-- Policy A: Photographers can upload photos to the storage bucket
+CREATE POLICY "Photographers can upload photos"
+  ON storage.objects
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (bucket_id = 'wedding-photos');
+
+-- Policy B: Photographers can update or replace their photos
+CREATE POLICY "Photographers can update photos"
+  ON storage.objects
+  FOR UPDATE
+  TO authenticated
+  USING (bucket_id = 'wedding-photos')
+  WITH CHECK (bucket_id = 'wedding-photos');
+
+-- Policy C: Photographers can delete their photos from storage
+CREATE POLICY "Photographers can delete photos"
+  ON storage.objects
+  FOR DELETE
+  TO authenticated
+  USING (bucket_id = 'wedding-photos');
+
+-- Policy D: Public guests can view and download photos from storage
+CREATE POLICY "Public guests can read and download wedding photos"
+  ON storage.objects
+  FOR SELECT
+  TO public
+  USING (bucket_id = 'wedding-photos');
+

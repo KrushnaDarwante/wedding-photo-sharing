@@ -6,10 +6,9 @@ import { SlideshowModal } from './SlideshowModal';
 import { ShareModal } from './ShareModal';
 import { BulkDownloadProgressModal } from './BulkDownloadProgressModal';
 import { MultiVolumeDownloadModal } from './MultiVolumeDownloadModal';
-import { GalleryImageCard } from './GalleryImageCard';
 import { downloadPhotosAsZip, downloadSinglePhoto } from '../../lib/zipHelper';
 import { filterPhotos } from '../../utils/pureLogic';
-import { normalizeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../../lib/imageHelper';
+import { ImageWithFallback } from '../Common/ImageWithFallback';
 import {
   Heart,
   Download,
@@ -308,19 +307,19 @@ export const GuestGalleryView: React.FC<GuestGalleryViewProps> = ({
             {/* Right Column: Hero thumbnail & live badge */}
             <div className="lg:col-span-4 relative">
               <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg border border-[#E8E2D8] bg-[#FAF6F0]">
-                <img
-                  src={normalizeImageUrl(event.coverPhotoUrl)}
+                <ImageWithFallback
+                  src={event.coverPhotoUrl}
                   alt={event.coupleNames}
+                  aspectRatioClass="aspect-[4/3]"
+                  ritualCategory="Wedding"
+                  coupleNames={event.coupleNames}
+                  loading="eager"
                   className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src = FALLBACK_IMAGE_DATA_URI;
-                  }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4 text-white">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-4 text-white pointer-events-none">
                   <div className="flex items-center justify-between w-full text-xs">
-                    <span className="font-medium">{allEventPhotos.length} High-Res Photographs</span>
-                    <span className="flex items-center gap-1 text-emerald-300 font-semibold text-[11px]">
+                    <span className="font-medium text-[#FDFBF7]">{allEventPhotos.length} High-Res Photographs</span>
+                    <span className="flex items-center gap-1.5 text-emerald-300 font-semibold text-[11px] bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-emerald-400/30">
                       <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
                       Live Feed
                     </span>
@@ -465,22 +464,119 @@ export const GuestGalleryView: React.FC<GuestGalleryViewProps> = ({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {displayedPhotos.map((photo) => (
-                <GalleryImageCard
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {displayedPhotos.map((photo, index) => {
+              const isFav = isFavorite(photo.id);
+              const isSelected = selectedPhotoIds.has(photo.id);
+
+              return (
+                <div
                   key={photo.id}
-                  photo={photo}
-                  isSelected={selectedPhotoIds.has(photo.id)}
-                  isFav={isFavorite(photo.id)}
-                  isSelectionMode={isSelectionMode}
-                  onSelect={toggleSelectPhoto}
-                  onOpenLightbox={(photoId) => setActiveLightboxPhotoId(photoId)}
-                  onToggleFavorite={toggleFavorite}
-                  onDownload={downloadSinglePhoto}
-                  onShare={(p) => setSharePhoto(p)}
-                />
-              ))}
-            </div>
+                  className={`relative rounded-2xl overflow-hidden bg-white border shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col group ${
+                    isSelected ? 'border-[#800020] ring-2 ring-[#800020]/30' : 'border-[#E8E2D8] hover:border-[#D4AF37]/60'
+                  }`}
+                >
+                  {/* Photo Image Container with Locked 4:3 Aspect Ratio */}
+                  <div
+                    onClick={() => {
+                      if (isSelectionMode) {
+                        toggleSelectPhoto(photo.id);
+                      } else {
+                        setActiveLightboxPhotoId(photo.id);
+                      }
+                    }}
+                    className="cursor-pointer relative overflow-hidden bg-[#FAF6F0] aspect-[4/3] w-full"
+                  >
+                    <ImageWithFallback
+                      src={photo.thumbnailUrl}
+                      alt={photo.caption || photo.filename}
+                      aspectRatioClass="aspect-[4/3]"
+                      ritualCategory={photo.category}
+                      coupleNames={event.coupleNames}
+                      className="group-hover:scale-105 transition-transform duration-500"
+                    />
+
+                    {/* Gradient Overlay for Top Badges */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                    {/* Top Left: Ritual Badge or Checkbox */}
+                    <div className="absolute top-3 left-3 z-10">
+                      {isSelectionMode ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSelectPhoto(photo.id);
+                          }}
+                          className="p-1.5 rounded-lg bg-black/60 text-white backdrop-blur-sm cursor-pointer shadow-md"
+                        >
+                          {isSelected ? (
+                            <CheckSquare className="w-4 h-4 text-[#D4AF37]" />
+                          ) : (
+                            <Square className="w-4 h-4 text-white" />
+                          )}
+                        </button>
+                      ) : (
+                        <span className="text-[11px] font-semibold bg-[#800020]/85 text-[#FDFBF7] backdrop-blur-md px-2.5 py-1 rounded-lg border border-[#D4AF37]/40 shadow-sm flex items-center gap-1">
+                          <span>{photo.category}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Top Right Floating Actions: Heart, Download HD, Share */}
+                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(photo.id);
+                        }}
+                        className={`p-2 rounded-xl backdrop-blur-md transition-all cursor-pointer shadow-md ${
+                          isFav
+                            ? 'bg-rose-600 text-white shadow-rose-600/30'
+                            : 'bg-black/50 hover:bg-black/80 text-white opacity-90 group-hover:opacity-100 hover:scale-105'
+                        }`}
+                        title={isFav ? 'Remove from Favourites' : 'Add to Favourites'}
+                      >
+                        <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-white' : ''}`} />
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadSinglePhoto(photo);
+                        }}
+                        className="p-2 rounded-xl bg-black/50 hover:bg-black/80 text-white backdrop-blur-md transition-all opacity-0 group-hover:opacity-100 hover:scale-105 cursor-pointer shadow-md"
+                        title="Download Original HD Photograph"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSharePhoto(photo);
+                        }}
+                        className="p-2 rounded-xl bg-black/50 hover:bg-black/80 text-white backdrop-blur-md transition-all opacity-0 group-hover:opacity-100 hover:scale-105 cursor-pointer shadow-md"
+                        title="Share Photograph"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Designated Card Footer: Clean Typography, Captions Only Here */}
+                  <div className="p-3.5 bg-white border-t border-[#F2EBE1] flex-1 flex flex-col justify-between min-h-[68px]">
+                    <p className="text-xs font-medium text-slate-800 line-clamp-2 leading-relaxed" title={photo.caption || photo.filename}>
+                      {photo.caption || photo.filename}
+                    </p>
+                    <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                      <span className="text-[#800020] font-medium font-sans">{photo.category}</span>
+                      <span>#{index + 1}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Progressive Pagination Controls for Large Collections */}
           {filteredPhotos.length > visibleCount && (

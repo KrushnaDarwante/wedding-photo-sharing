@@ -4,10 +4,9 @@ import { Camera, Sparkles, LogOut, LayoutDashboard, QrCode } from 'lucide-react'
 
 interface NavbarProps {
   onOpenAuth: (mode?: 'login' | 'forgot') => void;
-  onOpenSupabaseConfig: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenSupabaseConfig }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
   const { photographer, currentView, setCurrentView, logout, events } = useWedding();
 
   const handleDemoGalleryClick = () => {
@@ -59,14 +58,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenSupabaseConfig
             }}
             className="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
-            Features
+            Features & Security
           </button>
           <button
             onClick={handleDemoGalleryClick}
-            className="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer text-[#9A7B4F] font-semibold"
+            className="hover:text-slate-900 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer text-[#800020] font-semibold"
           >
             <QrCode className="w-3.5 h-3.5" />
-            Live Guest Demo
+            Live Guest Gallery
           </button>
           <button
             onClick={() => {
@@ -79,21 +78,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenSupabaseConfig
           >
             Studio Experience
           </button>
-          <button
-            onClick={onOpenSupabaseConfig}
-            className="text-xs text-slate-500 hover:text-slate-700 transition-colors whitespace-nowrap shrink-0"
-            title="Database & Storage Settings"
-          >
-            Cloud DB
-          </button>
-          <a
-            href="/aurawed-wedding-saas.zip"
-            download="aurawed-wedding-saas.zip"
-            className="text-xs font-semibold text-[#8B6D43] bg-[#F5EFE6] hover:bg-[#EBDDC8] px-2.5 py-1 rounded-lg border border-[#E0D4C0] transition-colors whitespace-nowrap shrink-0 flex items-center gap-1"
-            title="Download Complete Source Code ZIP"
-          >
-            <span>Project ZIP</span>
-          </a>
         </nav>
 
         {/* Zone 3: 1 primary action */}

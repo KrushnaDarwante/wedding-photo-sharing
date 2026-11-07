@@ -8,17 +8,19 @@ import { PhotographerBenefits } from './components/PhotographerBenefits';
 import { PricingSection } from './components/PricingSection';
 import { Footer } from './components/Footer';
 import { AuthModal } from './components/AuthModal';
-import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 import { DashboardOverview } from './components/Dashboard/DashboardOverview';
+import { DashboardAccessDenied } from './components/Dashboard/DashboardAccessDenied';
 import { GuestGalleryView } from './components/GuestGallery/GuestGalleryView';
+import { isStudioOwner } from './utils/pureLogic';
 
 function AppContent() {
-  const { currentView } = useWedding();
+  const { currentView, photographer, setCurrentView } = useWedding();
   const [authModalState, setAuthModalState] = useState<{ isOpen: boolean; mode: 'login' | 'forgot' }>({
     isOpen: false,
     mode: 'login'
   });
-  const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
+
+  const isOwnerAuthenticated = Boolean(photographer && isStudioOwner(photographer.id));
 
   const openAuth = (mode: 'login' | 'forgot' = 'login') => {
     setAuthModalState({ isOpen: true, mode });
@@ -31,10 +33,7 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-slate-800 antialiased selection:bg-[#E2D4B7] selection:text-slate-900">
       {/* Top Navbar */}
-      <Navbar
-        onOpenAuth={openAuth}
-        onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
-      />
+      <Navbar onOpenAuth={openAuth} />
 
       {/* Main View Router */}
       <main className="flex-1">
@@ -49,7 +48,14 @@ function AppContent() {
         )}
 
         {currentView.type === 'dashboard' && (
-          <DashboardOverview />
+          isOwnerAuthenticated ? (
+            <DashboardOverview />
+          ) : (
+            <DashboardAccessDenied
+              onOpenLogin={() => openAuth('login')}
+              onReturnHome={() => setCurrentView({ type: 'home' })}
+            />
+          )
         )}
 
         {currentView.type === 'guest-gallery' && (
@@ -61,22 +67,13 @@ function AppContent() {
       </main>
 
       {/* Platform Footer */}
-      <Footer
-        onOpenAuth={() => openAuth('login')}
-        onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
-      />
+      <Footer onOpenAuth={() => openAuth('login')} />
 
       {/* Photographer Authentication Modal */}
       <AuthModal
         isOpen={authModalState.isOpen}
         onClose={closeAuth}
         initialMode={authModalState.mode}
-      />
-
-      {/* Database & Cloud Storage Settings Modal */}
-      <SupabaseConfigModal
-        isOpen={isSupabaseModalOpen}
-        onClose={() => setIsSupabaseModalOpen(false)}
       />
     </div>
   );

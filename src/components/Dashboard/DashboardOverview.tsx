@@ -5,6 +5,7 @@ import { QRCodeManagerModal } from './QRCodeManagerModal';
 import { PhotographerSettings } from './PhotographerSettings';
 import { EventDetailView } from './EventDetailView';
 import { StorageCostDashboard } from './StorageCostDashboard';
+import { DatabaseCloudStoragePanel } from './DatabaseCloudStoragePanel';
 import { formatBytes } from '../../utils/pureLogic';
 import {
   Plus,
@@ -19,13 +20,14 @@ import {
   Sparkles,
   Camera,
   MapPin,
-  Radio
+  Radio,
+  Database
 } from 'lucide-react';
 import { WeddingEvent } from '../../types';
 
 export const DashboardOverview: React.FC = () => {
   const { photographer, events, photos, setCurrentView } = useWedding();
-  const [activeTab, setActiveTab] = useState<'events' | 'storage' | 'settings'>('events');
+  const [activeTab, setActiveTab] = useState<'events' | 'storage' | 'database' | 'settings'>('events');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [qrModalEvent, setQrModalEvent] = useState<WeddingEvent | null>(null);
@@ -188,10 +190,22 @@ export const DashboardOverview: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveTab('database')}
+          className={`px-4 py-2 text-xs font-semibold rounded-t-xl transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+            activeTab === 'database'
+              ? 'text-slate-900 border-b-2 border-[#800020] bg-white'
+              : 'text-slate-500 hover:text-slate-900'
+          }`}
+        >
+          <Database className="w-4 h-4 text-emerald-600" />
+          <span>Cloud DB & Storage</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('settings')}
           className={`px-4 py-2 text-xs font-semibold rounded-t-xl transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
             activeTab === 'settings'
-              ? 'text-slate-900 border-b-2 border-[#9A7B4F] bg-white'
+              ? 'text-slate-900 border-b-2 border-[#800020] bg-white'
               : 'text-slate-500 hover:text-slate-900'
           }`}
         >
@@ -312,6 +326,8 @@ export const DashboardOverview: React.FC = () => {
         </div>
       ) : activeTab === 'storage' ? (
         <StorageCostDashboard />
+      ) : activeTab === 'database' ? (
+        <DatabaseCloudStoragePanel />
       ) : (
         <PhotographerSettings />
       )}

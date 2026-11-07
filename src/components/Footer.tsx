@@ -1,14 +1,15 @@
-﻿import React from 'react';
-import { Camera, Heart } from 'lucide-react';
+import React from 'react';
+import { Camera, Heart, Lock, LayoutDashboard, LogOut } from 'lucide-react';
 import { useWedding } from '../context/WeddingContext';
+import { isStudioOwner } from '../utils/pureLogic';
 
 interface FooterProps {
   onOpenAuth: () => void;
-  onOpenSupabaseConfig: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenAuth, onOpenSupabaseConfig }) => {
-  const { setCurrentView, events } = useWedding();
+export const Footer: React.FC<FooterProps> = ({ onOpenAuth }) => {
+  const { setCurrentView, events, photographer, logout } = useWedding();
+  const isOwner = photographer && isStudioOwner(photographer.id);
 
   return (
     <footer className="bg-[#191715] text-[#E0D8CB] pt-16 pb-12 border-t border-[#2E2A26]">
@@ -25,10 +26,10 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAuth, onOpenSupabaseConfig
               </span>
             </div>
             <p className="text-xs text-[#B5A998] leading-relaxed max-w-sm">
-              The dedicated wedding photo sharing platform built exclusively for Lumière Wedding Studios and our wedding couples. Instant QR codes, live reception feeds, and full-resolution bulk downloads.
+              The dedicated wedding photo sharing platform built exclusively for Vedic Vows & Royal Indian Weddings and our couples. Instant QR codes, live reception feeds, and full-resolution memories.
             </p>
             <div className="text-[11px] text-[#8E8272] flex items-center gap-1.5 pt-1">
-              <span>Strict Rule: Only studio owner uploads</span>
+              <span>Strict Rule: Only verified studio owner uploads</span>
               <span aria-hidden="true">·</span>
               <span>Guests enjoy read-only galleries</span>
             </div>
@@ -66,56 +67,68 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAuth, onOpenSupabaseConfig
                   onClick={() => {
                     setCurrentView({ type: 'home' });
                     setTimeout(() => {
-                      document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth' });
+                      document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
                     }, 50);
                   }}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
-                  Studio Experience
+                  How It Works
                 </button>
               </li>
               <li>
-                <a
-                  href="/aurawed-wedding-saas.zip"
-                  download="aurawed-wedding-saas.zip"
-                  className="hover:text-white transition-colors cursor-pointer text-[#C8A97E] flex items-center gap-1"
+                <button
+                  onClick={() => {
+                    setCurrentView({ type: 'home' });
+                    setTimeout(() => {
+                      document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 50);
+                  }}
+                  className="hover:text-white transition-colors cursor-pointer"
                 >
-                  Download Source Code (ZIP)
-                </a>
+                  Features & Security
+                </button>
               </li>
             </ul>
           </div>
 
           {/* Studio Owner Portal */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">
-              Studio Owner
+            <h4 className="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-[#C8A97E]" />
+              <span>Studio Owner</span>
             </h4>
             <ul className="space-y-2 text-xs text-[#B5A998]">
-              <li>
-                <button
-                  onClick={() => onOpenAuth()}
-                  className="hover:text-white transition-colors cursor-pointer"
-                >
-                  Studio Owner Login
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setCurrentView({ type: 'dashboard' })}
-                  className="hover:text-white transition-colors cursor-pointer"
-                >
-                  Photographer Dashboard
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={onOpenSupabaseConfig}
-                  className="hover:text-white transition-colors cursor-pointer text-[#C8A97E]"
-                >
-                  Supabase & Cloud Storage
-                </button>
-              </li>
+              {isOwner ? (
+                <>
+                  <li>
+                    <button
+                      onClick={() => setCurrentView({ type: 'dashboard' })}
+                      className="hover:text-white transition-colors cursor-pointer text-[#C8A97E] flex items-center gap-1.5"
+                    >
+                      <LayoutDashboard className="w-3.5 h-3.5" />
+                      <span>Studio Dashboard</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={logout}
+                      className="hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 text-slate-400"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <li>
+                  <button
+                    onClick={onOpenAuth}
+                    className="hover:text-white transition-colors cursor-pointer text-[#C8A97E]"
+                  >
+                    Studio Owner Sign In
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
         </div>

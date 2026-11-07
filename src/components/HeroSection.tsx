@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWedding } from '../context/WeddingContext';
 import { generateQRCodeDataUrl } from '../lib/qrHelper';
+import { ImageWithFallback } from './Common/ImageWithFallback';
 import { ArrowRight, QrCode, ShieldCheck, Zap, DownloadCloud, Sparkles } from 'lucide-react';
 
 interface HeroSectionProps {
@@ -47,20 +48,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Column: Typographic Hierarchy */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="flex items-center gap-2 text-xs font-medium text-[#9A7B4F] tracking-wide uppercase">
-              <span>Lumière Wedding Studios</span>
-              <span aria-hidden="true">·</span>
-              <span>Dedicated Wedding Platform</span>
-              <span aria-hidden="true">·</span>
-              <span>Instant QR Delivery</span>
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#800020] tracking-wide uppercase">
+              <span>{photographer?.businessName || 'Vedic Vows & Royal Indian Weddings'}</span>
+              <span aria-hidden="true" className="text-[#D4AF37]">·</span>
+              <span>Royal Indian Wedding Archive</span>
+              <span aria-hidden="true" className="text-[#D4AF37]">·</span>
+              <span>Instant QR Table Delivery</span>
             </div>
 
             <h1 className="font-serif-luxury text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-[1.12] text-balance">
-              Give wedding guests <span className="italic font-normal text-[#9A7B4F]">instant access</span> to every breathtaking photo.
+              Give wedding guests <span className="italic font-normal text-[#800020]">instant access</span> to sacred pheras & royal celebrations.
             </h1>
 
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-              Our studio uploads curated, high-definition wedding photos in real-time. Guests simply scan their reception table QR code to view and download full-resolution memories—with zero apps, zero login friction, and strict photographer-only upload security.
+              From auspicious Haldi and Mehndi revelry to grand Baraat processions, sacred Vedic pheras, and gala receptions. Guests simply scan their reception table QR card to view and download full-resolution memories—with zero app downloads, zero login friction, and strict photographer-only upload security.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -76,7 +77,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
                 onClick={handleLaunchGuestDemo}
                 className="px-6 py-3.5 text-sm font-semibold text-slate-800 bg-white hover:bg-[#FAF5EB] border border-[#E3DAC9] rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer"
               >
-                <QrCode className="w-4 h-4 text-[#9A7B4F]" />
+                <QrCode className="w-4 h-4 text-[#800020]" />
                 <span>Test Live Guest Gallery</span>
               </button>
             </div>
@@ -88,7 +89,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
                 <span>Strict Photographer-Only Uploads</span>
               </div>
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-[#9A7B4F] shrink-0" />
+                <Zap className="w-4 h-4 text-[#D4AF37] shrink-0" />
                 <span>Real-Time Live Photo Feed</span>
               </div>
               <div className="flex items-center gap-2">
@@ -101,21 +102,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
           {/* Right Column: Visual Showcase & Interactive QR Table Card */}
           <div className="lg:col-span-5 relative">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-[#E8E2D8] bg-white group">
-              <img
-                src="/assets/images/hero_wedding_couple_1793789594998.jpg"
-                alt="Elena and Christian Luxury Wedding"
-                className="w-full h-[440px] sm:h-[480px] object-cover group-hover:scale-102 transition-transform duration-700"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="w-full h-[440px] sm:h-[480px]">
+                <ImageWithFallback
+                  src="/images/hero_wedding_couple_1793789594998.jpg"
+                  alt={featuredEvent ? featuredEvent.coupleNames : 'Maya and Aarav Royal Wedding'}
+                  aspectRatioClass="h-full w-full"
+                  ritualCategory="Wedding"
+                  coupleNames={featuredEvent?.coupleNames || 'Maya & Aarav'}
+                  loading="eager"
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
               {/* Event caption overlay */}
               <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-white/95">
-                <span className="text-xs font-medium tracking-wide uppercase bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg border border-white/20">
+                <span className="text-xs font-semibold tracking-wide uppercase bg-[#800020]/80 backdrop-blur-md px-3 py-1 rounded-lg border border-[#D4AF37]/30 text-[#FDFBF7]">
                   Live Wedding Preview
                 </span>
-                <span className="text-xs bg-[#C8A97E] text-slate-900 font-semibold px-2.5 py-1 rounded-lg shadow-sm">
-                  8 HD Photos Online
+                <span className="text-xs bg-[#D4AF37] text-slate-900 font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                  {featuredEvent ? `${featuredEvent.totalPhotos} HD Photos Online` : '8 HD Photos Online'}
                 </span>
               </div>
 
@@ -135,13 +141,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
                   )}
                   <div>
                     <h2 className="font-serif-luxury text-base font-bold text-slate-900 leading-tight">
-                      Elena & Christian
+                      {featuredEvent?.coupleNames || 'Maya & Aarav'}
                     </h2>
                     <p className="text-xs text-slate-500">
-                      Villa Corsini, Florence · 18 Oct 2026
+                      {featuredEvent?.venue || 'Umaid Bhawan Palace, Jodhpur'}
                     </p>
-                    <p className="text-[11px] text-[#9A7B4F] font-semibold flex items-center gap-1 mt-0.5">
-                      <Sparkles className="w-3 h-3" />
+                    <p className="text-[11px] text-[#800020] font-semibold flex items-center gap-1 mt-0.5">
+                      <Sparkles className="w-3 h-3 text-[#D4AF37]" />
                       Scan or tap to preview gallery
                     </p>
                   </div>
@@ -149,7 +155,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenAuth }) => {
 
                 <button
                   onClick={handleLaunchGuestDemo}
-                  className="px-3.5 py-2 text-xs font-semibold text-white bg-[#1E1B18] hover:bg-[#36322D] rounded-lg transition-colors shrink-0 shadow-sm cursor-pointer"
+                  className="px-3.5 py-2 text-xs font-semibold text-white bg-[#800020] hover:bg-[#660019] rounded-lg transition-colors shrink-0 shadow-sm cursor-pointer"
                 >
                   View
                 </button>

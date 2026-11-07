@@ -11,8 +11,7 @@ import {
   INITIAL_PHOTOS
 } from '../lib/constants';
 import {
-  createOptimizedThumbnail,
-  normalizeImageUrl
+  createOptimizedThumbnail
 } from '../lib/imageHelper';
 import {
   generateSlug,
@@ -25,8 +24,18 @@ import {
 } from '../utils/pureLogic';
 import {
   broadcastPhotoEvent,
-  liveBroadcastChannel
+  liveBroadcastChannel,
+  isSupabaseConfigured,
+  supabaseClient,
+  fetchEventsFromSupabase,
+  fetchPhotosFromSupabase
 } from '../lib/supabase';
+
+export interface StorageArchitectureStatus {
+  engine: 'local-browser' | 'supabase-cloud';
+  isCloudConnected: boolean;
+  notes: string;
+}
 
 interface WeddingContextType {
   photographer: PhotographerProfile | null;
@@ -35,10 +44,10 @@ interface WeddingContextType {
   currentView: AppView;
   favorites: Set<string>;
   livePhotoAlert: { eventId: string; count: number } | null;
+  storageArchitecture: StorageArchitectureStatus;
   clearLiveAlert: () => void;
   setCurrentView: (view: AppView) => void;
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
-  loginAsDemo: () => void;
   requestPasswordReset: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   logout: () => void;
   updatePhotographerProfile: (updates: Partial<PhotographerProfile>) => void;
@@ -65,27 +74,34 @@ interface WeddingContextType {
 const WeddingContext = createContext<WeddingContextType | null>(null);
 
 const STORAGE_KEYS = {
-  PHOTOGRAPHER: 'aurawed_photographer_v1',
-  EVENTS: 'aurawed_events_v1',
-  PHOTOS: 'aurawed_photos_v1',
-  FAVORITES: 'aurawed_favorites_v1'
+  PHOTOGRAPHER: 'aurawed_photographer_v2',
+  EVENTS: 'aurawed_events_v2',
+  PHOTOS: 'aurawed_photos_v2',
+  FAVORITES: 'aurawed_favorites_v2'
+};
+
+const sanitizeAssetUrl = (url?: string): string => {
+  if (!url) return '';
+  if (url.startsWith('/src/assets/images/')) {
+    return url.replace('/src/assets/images/', '/images/');
+  }
+  return url;
 };
 
 export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // 1. Photographer state
+  // 1. Photographer state - strictly initialized to null if no authenticated session exists in localStorage
   const [photographer, setPhotographer] = useState<PhotographerProfile | null>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.PHOTOGRAPHER);
       if (saved) {
         const parsed: PhotographerProfile = JSON.parse(saved);
-        return {
-          ...parsed,
-          logoUrl: normalizeImageUrl(parsed.logoUrl || DEFAULT_PHOTOGRAPHER.logoUrl)
-        };
+        if (isStudioOwner(parsed.id)) {
+          return { ...parsed, logoUrl: sanitizeAssetUrl(parsed.logoUrl) };
+        }
       }
-      return DEFAULT_PHOTOGRAPHER;
+      return null;
     } catch {
-      return DEFAULT_PHOTOGRAPHER;
+      return null;
     }
   });
 
@@ -95,16 +111,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const saved = localStorage.getItem(STORAGE_KEYS.EVENTS);
       if (saved) {
         const parsed: WeddingEvent[] = JSON.parse(saved);
-        const initialMap = new Map(INITIAL_WEDDING_EVENTS.map(e => [e.id, e]));
-        return parsed.map(evt => {
-          const matchInitial = initialMap.get(evt.id);
-          return {
-            ...evt,
-            coverPhotoUrl: normalizeImageUrl(matchInitial?.coverPhotoUrl || evt.coverPhotoUrl),
-            totalPhotos: matchInitial ? matchInitial.totalPhotos : evt.totalPhotos,
-            categories: matchInitial?.categories || evt.categories
-          };
-        });
+        return parsed.map(e => ({
+          ...e,
+          coverPhotoUrl: sanitizeAssetUrl(e.coverPhotoUrl)
+        }));
       }
       return INITIAL_WEDDING_EVENTS;
     } catch {
@@ -118,26 +128,11 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const saved = localStorage.getItem(STORAGE_KEYS.PHOTOS);
       if (saved) {
         const parsed: WeddingPhoto[] = JSON.parse(saved);
-        const initialMap = new Map(INITIAL_PHOTOS.map(p => [p.id, p]));
-        return parsed.map(photo => {
-          const matchInitial = initialMap.get(photo.id);
-          if (matchInitial) {
-            return {
-              ...photo,
-              originalUrl: matchInitial.originalUrl,
-              thumbnailUrl: matchInitial.thumbnailUrl,
-              fileSizeBytes: matchInitial.fileSizeBytes,
-              category: matchInitial.category,
-              width: matchInitial.width,
-              height: matchInitial.height
-            };
-          }
-          return {
-            ...photo,
-            originalUrl: normalizeImageUrl(photo.originalUrl),
-            thumbnailUrl: normalizeImageUrl(photo.thumbnailUrl || photo.originalUrl)
-          };
-        });
+        return parsed.map(p => ({
+          ...p,
+          originalUrl: sanitizeAssetUrl(p.originalUrl),
+          thumbnailUrl: sanitizeAssetUrl(p.thumbnailUrl)
+        }));
       }
       return INITIAL_PHOTOS;
     } catch {
@@ -145,7 +140,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   });
 
-  // 4. Favorites state (saved locally)
+  // 4. Favorites state (saved locally per guest device)
   const [favorites, setFavorites] = useState<Set<string>>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.FAVORITES);
@@ -157,7 +152,6 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // 5. Active App View / Routing
   const [currentView, setCurrentView] = useState<AppView>(() => {
-    // Parse URL query parameter or path on initial load
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const eventSlug = urlParams.get('gallery') || urlParams.get('event');
@@ -175,6 +169,22 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Live real-time notification alert when new photos arrive in current gallery
   const [livePhotoAlert, setLivePhotoAlert] = useState<{ eventId: string; count: number } | null>(null);
+
+  // Storage architecture status
+  const storageArchitecture: StorageArchitectureStatus = useMemo(() => {
+    if (isSupabaseConfigured) {
+      return {
+        engine: 'supabase-cloud',
+        isCloudConnected: true,
+        notes: 'Connected to remote Supabase PostgreSQL & Cloud Object Storage.'
+      };
+    }
+    return {
+      engine: 'local-browser',
+      isCloudConnected: false,
+      notes: 'Operating on local browser storage engine. To sync photos across different devices worldwide, connect Supabase in Studio Dashboard.'
+    };
+  }, []);
 
   // Sync state to LocalStorage
   useEffect(() => {
@@ -238,6 +248,25 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     window.history.replaceState({}, '', url.toString());
   }, [currentView]);
+
+  // On initial load: If Supabase is configured, sync remote events and photos
+  useEffect(() => {
+    if (isSupabaseConfigured && supabaseClient) {
+      Promise.all([
+        fetchEventsFromSupabase(),
+        fetchPhotosFromSupabase()
+      ]).then(([remoteEvents, remotePhotos]) => {
+        if (remoteEvents && remoteEvents.length > 0) {
+          setEvents(remoteEvents);
+        }
+        if (remotePhotos && remotePhotos.length > 0) {
+          setPhotos(remotePhotos);
+        }
+      }).catch(err => {
+        console.warn('Failed to sync remote Supabase records, maintaining local state:', err);
+      });
+    }
+  }, []);
 
   // Real-time listener for incoming photo uploads across tabs/windows
   useEffect(() => {
@@ -305,30 +334,32 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Auth methods - Single Photographer (Studio Owner)
   const login = useCallback(async (email: string, pass: string) => {
     if (!email || !email.includes('@')) {
-      return { success: false, error: 'Please provide a valid studio email address.' };
+      return { success: false, error: 'Please provide a valid studio owner email address.' };
     }
     if (!pass || pass.trim().length < 4) {
       return { success: false, error: 'Password must be at least 4 characters.' };
     }
 
-    // Single-photographer: authenticate owner
+    const trimmedEmail = email.trim().toLowerCase();
+    const authorizedEmail = STUDIO_OWNER_EMAIL.toLowerCase();
+
+    // Enforce single-photographer studio owner authentication
+    if (trimmedEmail !== authorizedEmail && trimmedEmail !== 'owner@vedicvows.com') {
+      return {
+        success: false,
+        error: 'Access denied: Only the authorized studio owner email can access this administrative portal.'
+      };
+    }
+
     const profile: PhotographerProfile = {
       ...DEFAULT_PHOTOGRAPHER,
       id: STUDIO_OWNER_ID,
       role: 'owner',
-      email: email.trim().toLowerCase() === STUDIO_OWNER_EMAIL.toLowerCase() ? STUDIO_OWNER_EMAIL : email.trim()
+      email: trimmedEmail
     };
     setPhotographer(profile);
+    localStorage.setItem(STORAGE_KEYS.PHOTOGRAPHER, JSON.stringify(profile));
     return { success: true };
-  }, []);
-
-  const loginAsDemo = useCallback(() => {
-    setPhotographer({
-      ...DEFAULT_PHOTOGRAPHER,
-      id: STUDIO_OWNER_ID,
-      role: 'owner'
-    });
-    setCurrentView({ type: 'dashboard' });
   }, []);
 
   const requestPasswordReset = useCallback(async (email: string) => {
@@ -338,20 +369,24 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
     return {
       success: true,
-      message: `A secure password reset link has been dispatched to ${email}. Check your inbox!`
+      message: `A secure password reset verification link has been dispatched to ${email}.`
     };
   }, []);
 
   const logout = useCallback(() => {
     setPhotographer(null);
+    localStorage.removeItem(STORAGE_KEYS.PHOTOGRAPHER);
     setCurrentView({ type: 'home' });
   }, []);
 
   const updatePhotographerProfile = useCallback((updates: Partial<PhotographerProfile>) => {
+    if (!photographer || !isStudioOwner(photographer.id)) {
+      throw new Error('Unauthorized: Only the studio owner can update profile settings.');
+    }
     setPhotographer(prev => prev ? { ...prev, ...updates } : null);
-  }, []);
+  }, [photographer]);
 
-  // Event Management
+  // Event Management - strictly protected
   const createEvent = useCallback((data: {
     coupleNames: string;
     weddingDate: string;
@@ -360,19 +395,22 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     coverPhotoUrl?: string;
     categories?: string[];
   }): WeddingEvent => {
-    const photogId = photographer?.id || DEFAULT_PHOTOGRAPHER.id;
+    if (!photographer || !isStudioOwner(photographer.id)) {
+      throw new Error('Unauthorized: Only the authenticated studio owner can create wedding events.');
+    }
+
     const baseSlug = generateSlug(data.coupleNames, data.weddingDate);
     const id = `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
     const newEvent: WeddingEvent = {
       id,
-      photographerId: photogId,
+      photographerId: photographer.id,
       coupleNames: data.coupleNames,
       slug: baseSlug,
       weddingDate: data.weddingDate,
       venue: data.venue || 'Private Wedding Estate',
       description: data.description || 'Welcome to our celebration gallery. Browse and download your favorite memories.',
-      coverPhotoUrl: normalizeImageUrl(data.coverPhotoUrl || '/assets/images/hero_wedding_couple_1793789594998.jpg'),
+      coverPhotoUrl: data.coverPhotoUrl || '/images/hero_wedding_couple_1793789594998.jpg',
       isQrActive: true,
       totalPhotos: 0,
       totalViews: 0,
@@ -380,47 +418,103 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       storageBytes: 0,
       categories: data.categories && data.categories.length > 0
         ? data.categories
-        : ['Ceremony', 'Portraits', 'Reception'],
+        : ['Haldi', 'Mehndi', 'Sangeet', 'Wedding', 'Reception'],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     setEvents(prev => [newEvent, ...prev]);
+
+    // If Supabase is connected, insert into remote database
+    if (isSupabaseConfigured && supabaseClient) {
+      supabaseClient.from('wedding_events').insert({
+        id: newEvent.id,
+        photographer_id: newEvent.photographerId,
+        couple_names: newEvent.coupleNames,
+        slug: newEvent.slug,
+        wedding_date: newEvent.weddingDate,
+        venue: newEvent.venue,
+        description: newEvent.description,
+        cover_photo_url: newEvent.coverPhotoUrl,
+        is_qr_active: newEvent.isQrActive,
+        categories: newEvent.categories
+      }).then(({ error }) => {
+        if (error) console.warn('Supabase event sync error:', error.message);
+      });
+    }
+
     return newEvent;
   }, [photographer]);
 
   const updateEvent = useCallback((eventId: string, updates: Partial<WeddingEvent>) => {
+    if (!photographer || !isStudioOwner(photographer.id)) {
+      throw new Error('Unauthorized: Only the studio owner can update wedding events.');
+    }
+
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
         const updated = { ...evt, ...updates, updatedAt: new Date().toISOString() };
         broadcastPhotoEvent({ type: 'EVENT_UPDATED', eventId, timestamp: Date.now() });
+
+        if (isSupabaseConfigured && supabaseClient) {
+          supabaseClient.from('wedding_events').update({
+            couple_names: updated.coupleNames,
+            venue: updated.venue,
+            description: updated.description,
+            is_qr_active: updated.isQrActive,
+            categories: updated.categories,
+            updated_at: updated.updatedAt
+          }).eq('id', eventId).then();
+        }
+
         return updated;
       }
       return evt;
     }));
-  }, []);
+  }, [photographer]);
 
   const deleteEvent = useCallback((eventId: string) => {
+    if (!photographer || !isStudioOwner(photographer.id)) {
+      throw new Error('Unauthorized: Only the studio owner can delete wedding events.');
+    }
+
     setEvents(prev => prev.filter(e => e.id !== eventId));
     setPhotos(prev => prev.filter(p => p.eventId !== eventId));
-  }, []);
+
+    if (isSupabaseConfigured && supabaseClient) {
+      supabaseClient.from('wedding_events').delete().eq('id', eventId).then();
+    }
+  }, [photographer]);
 
   const toggleEventQr = useCallback((eventId: string, active: boolean) => {
+    if (!photographer || !isStudioOwner(photographer.id)) {
+      throw new Error('Unauthorized: Only the studio owner can toggle QR access.');
+    }
     updateEvent(eventId, { isQrActive: active });
-  }, [updateEvent]);
+  }, [photographer, updateEvent]);
 
   const regenerateQrSlug = useCallback((eventId: string): string => {
+    if (!photographer || !isStudioOwner(photographer.id)) {
+      throw new Error('Unauthorized: Only the studio owner can regenerate QR links.');
+    }
+
     const randomSuffix = Math.random().toString(36).substring(2, 6);
     let newSlug = '';
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
         newSlug = `${evt.slug.split('-v')[0]}-v${randomSuffix}`;
-        return { ...evt, slug: newSlug, updatedAt: new Date().toISOString() };
+        const updated = { ...evt, slug: newSlug, updatedAt: new Date().toISOString() };
+
+        if (isSupabaseConfigured && supabaseClient) {
+          supabaseClient.from('wedding_events').update({ slug: newSlug, updated_at: updated.updatedAt }).eq('id', eventId).then();
+        }
+
+        return updated;
       }
       return evt;
     }));
     return newSlug;
-  }, []);
+  }, [photographer]);
 
   // Bulk / Live Upload Photos - Strict Owner-Only Permission
   const uploadPhotoBatch = useCallback(async (
@@ -428,10 +522,9 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     fileItems: { file: File; category: string }[],
     onProgress?: (index: number, total: number, photo: WeddingPhoto) => void
   ): Promise<WeddingPhoto[]> => {
-    // Strict business rule: Only authenticated studio owner can upload photos
     if (!photographer || !isStudioOwner(photographer.id)) {
       console.error('Permission denied: Guests and unauthorized users cannot upload photos.');
-      throw new Error('Unauthorized: Only the studio owner can upload photographs.');
+      throw new Error('Unauthorized: Only the authenticated studio owner can upload photographs.');
     }
 
     const photogId = photographer.id;
@@ -474,20 +567,61 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         thumbUrl = URL.createObjectURL(file);
       }
 
-      const originalObjectUrl = URL.createObjectURL(file);
+      let originalUrl = URL.createObjectURL(file);
       const photoId = `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      let storageProvider: 'supabase' | 'local' = 'local';
+
+      // If Supabase Storage is configured, attempt upload to cloud object storage
+      if (isSupabaseConfigured && supabaseClient) {
+        try {
+          const filePath = `${eventId}/${photoId}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+          const { error: uploadError } = await supabaseClient.storage
+            .from('wedding-photos')
+            .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+          if (!uploadError) {
+            const { data: publicUrlData } = supabaseClient.storage
+              .from('wedding-photos')
+              .getPublicUrl(filePath);
+
+            if (publicUrlData?.publicUrl) {
+              originalUrl = publicUrlData.publicUrl;
+              storageProvider = 'supabase';
+            }
+
+            // Insert metadata record into Supabase PostgreSQL
+            await supabaseClient.from('wedding_photos').insert({
+              id: photoId,
+              event_id: eventId,
+              photographer_id: photogId,
+              original_url: originalUrl,
+              thumbnail_url: thumbUrl,
+              filename: file.name,
+              file_size_bytes: file.size,
+              width: imgWidth,
+              height: imgHeight,
+              category: category || 'Wedding',
+              storage_provider: 'supabase',
+              processing_status: 'ready'
+            });
+          }
+        } catch (supabaseErr) {
+          console.warn('Supabase cloud upload failed, falling back to local engine:', supabaseErr);
+        }
+      }
 
       const newPhoto: WeddingPhoto = {
         id: photoId,
         eventId,
         photographerId: photogId,
-        originalUrl: originalObjectUrl,
+        originalUrl,
         thumbnailUrl: thumbUrl,
         filename: file.name,
         fileSizeBytes: file.size,
         width: imgWidth,
         height: imgHeight,
-        category: category || 'Ceremony',
+        category: category || 'Wedding',
+        storageProvider,
         viewsCount: 0,
         downloadsCount: 0,
         createdAt: new Date().toISOString(),
@@ -537,6 +671,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [photographer, photos]);
 
   const deletePhoto = useCallback((photoId: string, eventId: string) => {
+    if (!photographer || !isStudioOwner(photographer.id)) {
+      throw new Error('Unauthorized: Only the studio owner can delete photos.');
+    }
+
     const target = photos.find(p => p.id === photoId);
     if (!target) return;
 
@@ -562,17 +700,29 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       };
     });
 
+    if (isSupabaseConfigured && supabaseClient) {
+      supabaseClient.from('wedding_photos').delete().eq('id', photoId).then();
+    }
+
     broadcastPhotoEvent({
       type: 'PHOTO_DELETED',
       eventId,
       photo: { id: photoId },
       timestamp: Date.now()
     });
-  }, [photos]);
+  }, [photographer, photos]);
 
   const updatePhotoCategory = useCallback((photoId: string, _eventId: string, category: string) => {
+    if (!photographer || !isStudioOwner(photographer.id)) {
+      throw new Error('Unauthorized: Only the studio owner can categorize photos.');
+    }
+
     setPhotos(prev => prev.map(p => p.id === photoId ? { ...p, category } : p));
-  }, []);
+
+    if (isSupabaseConfigured && supabaseClient) {
+      supabaseClient.from('wedding_photos').update({ category }).eq('id', photoId).then();
+    }
+  }, [photographer]);
 
   // Favorites
   const toggleFavorite = useCallback((photoId: string) => {
@@ -617,10 +767,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     currentView,
     favorites,
     livePhotoAlert,
+    storageArchitecture,
     clearLiveAlert,
     setCurrentView,
     login,
-    loginAsDemo,
     requestPasswordReset,
     logout,
     updatePhotographerProfile,
@@ -645,10 +795,10 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     currentView,
     favorites,
     livePhotoAlert,
+    storageArchitecture,
     clearLiveAlert,
     setCurrentView,
     login,
-    loginAsDemo,
     requestPasswordReset,
     logout,
     updatePhotographerProfile,

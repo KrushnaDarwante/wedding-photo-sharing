@@ -1,0 +1,1047 @@
+# AURAWED – COMPLETE INDIAN WEDDING PHOTO SHARING PLATFORM
+## Full Redesign + Commercial Production Readiness + Security + Scalability + Complete QA
+
+Act as a senior full-stack software architect, UI/UX designer, React and TypeScript engineer, cloud infrastructure engineer, database engineer, security specialist, DevOps engineer and QA automation engineer.
+
+I already have an existing website called AuraWed – Wedding Photo Sharing Platform.
+
+Your task is to inspect, upgrade, redesign, secure, optimize and transform my EXISTING website into a premium Indian Wedding Photo Sharing platform that is ready for commercial production.
+
+This is NOT a request to create a new project from scratch.
+
+Preserve existing working functionality, existing data, integrations, routes and useful components. Improve the existing codebase safely.
+
+==================================================
+1. PROJECT PURPOSE AND BUSINESS MODEL
+==================================================
+
+AuraWed is a wedding photography photo-sharing platform for ONE professional photographer.
+
+The photographer is the website owner and can manage multiple wedding events.
+
+Each event can have:
+- 15,000+ photos.
+- 3,000+ guests.
+- A unique QR code and event URL.
+- Multiple wedding albums.
+- HD photo downloads.
+- Public read-only guest gallery access.
+
+Business architecture:
+- One photographer account only.
+- One owner login.
+- Multiple wedding events.
+- Public/read-only guest access through QR code or event URL.
+- No public photographer registration.
+- No multi-photographer onboarding.
+- No unnecessary subscription or billing system.
+
+The scalability targets are engineering requirements, NOT assumed guarantees. Validate them through realistic load testing before claiming they are supported.
+
+==================================================
+2. FIRST: COMPLETE EXISTING PROJECT AUDIT
+==================================================
+
+Before changing code, inspect the entire existing project.
+
+Inspect:
+- Project directory and file structure.
+- Frontend framework and dependencies.
+- React components and routes.
+- Authentication.
+- Database schema.
+- Database queries and policies.
+- Object storage.
+- Image upload and processing.
+- QR generation.
+- Gallery rendering.
+- Download functionality.
+- API endpoints.
+- Environment variables.
+- Netlify deployment configuration.
+- Existing error handling.
+- Existing tests.
+- Mobile responsiveness.
+- Security and performance.
+
+Identify:
+- Broken images.
+- Invalid image URLs.
+- Missing storage objects.
+- Duplicate gallery content.
+- Duplicate records.
+- Incomplete functionality.
+- Dead buttons and nonfunctional controls.
+- Incorrect routes.
+- Slow database queries.
+- Security vulnerabilities.
+- Storage access problems.
+- Upload failures.
+- Mobile compatibility problems.
+- Missing error and loading states.
+
+Create a detailed audit report before making major architectural changes.
+
+Do not assume that a feature works just because its UI exists.
+
+Do not silently remove features or existing data.
+
+==================================================
+3. COMPLETE INDIAN WEDDING DESIGN
+==================================================
+
+Redesign the entire website around Indian wedding culture.
+
+Design direction:
+Modern Indian Luxury + Traditional Indian Wedding.
+
+The website must not look like a generic Western wedding website.
+
+Colour palette:
+- Warm ivory and cream backgrounds.
+- Deep maroon and Indian red.
+- Saffron and haldi yellow.
+- Mehndi green.
+- Antique gold.
+- Soft pink and coral accents where appropriate.
+
+Indian visual elements:
+- Mandala patterns.
+- Rangoli-inspired details.
+- Paisley motifs.
+- Marigold flowers.
+- Traditional toran.
+- Elegant mandap-inspired decorative elements.
+- Indian wedding invitation aesthetics.
+- Subtle heritage-inspired borders.
+- Tasteful floral decorations.
+
+Typography:
+- Premium English typography.
+- Proper Hindi and Devanagari font support.
+- Clear headings and readable body text.
+- Correct rendering of Indian names and regional-language characters.
+
+Avoid:
+- Generic foreign wedding templates.
+- Excessive decoration.
+- Unnecessary animations.
+- Black-heavy design.
+- Visual clutter.
+- Low-quality stock photography.
+
+Create a premium, elegant, emotional and culturally relevant experience.
+
+==================================================
+4. INDIAN WEDDING HOME PAGE
+==================================================
+
+Create a premium home page containing:
+- Indian wedding hero section.
+- Elegant couple imagery.
+- Photographer branding.
+- Wedding event showcase.
+- Gallery preview.
+- Indian floral and cultural design elements.
+- Clear navigation.
+- Responsive layouts.
+- Fast loading.
+- Proper SEO metadata.
+
+The website should communicate premium Indian wedding photography.
+
+==================================================
+5. INDIAN WEDDING EVENT SYSTEM
+==================================================
+
+Support multiple events managed by the single photographer.
+
+Each event should have:
+- Event ID.
+- Couple names.
+- Wedding title.
+- Wedding date.
+- Venue.
+- Description.
+- Cover image.
+- Event status.
+- Unique event URL.
+- Unique QR code.
+- Created and updated timestamps.
+
+Support albums:
+- Roka.
+- Engagement.
+- Haldi.
+- Mehndi.
+- Sangeet.
+- Baraat.
+- Wedding.
+- Pheras.
+- Vidaai.
+- Reception.
+- Custom albums.
+
+Allow albums to be created, edited, reordered, archived and restored.
+
+Support English and Hindi content.
+
+==================================================
+6. PHOTOGRAPHER DASHBOARD
+==================================================
+
+Build a premium and functional photographer dashboard.
+
+Features:
+- Owner login and logout.
+- Secure password recovery.
+- Strong authentication.
+- Optional MFA.
+- Create multiple wedding events.
+- Edit and archive events.
+- Restore archived events.
+- Manage albums.
+- Upload thousands of photos.
+- Manage individual photos.
+- Delete and restore photos.
+- Generate and download QR codes.
+- Regenerate or deactivate QR codes.
+- Download printable QR cards.
+- View event analytics.
+- View total photo count.
+- View published and processing photo count.
+- View storage usage.
+- View upload history.
+- View failed uploads.
+- View download job history.
+- Monitor storage and bandwidth consumption.
+
+All owner operations must be protected by server-side authorization.
+
+No public photographer registration.
+
+==================================================
+7. QR CODE SYSTEM
+==================================================
+
+Implement a reliable event-specific QR system.
+
+Requirements:
+- Unique QR code for every wedding event.
+- Stable event URL.
+- Download QR as PNG.
+- Download QR as PDF.
+- Printable Indian wedding invitation-style QR card.
+- Regenerate QR without changing the stable event URL unnecessarily.
+- Deactivate event access when required.
+- Reactivate event access.
+- Validate event status before displaying the gallery.
+
+QR codes must be tested on printed invitation cards and mobile devices.
+
+==================================================
+8. BULK PHOTO UPLOAD SYSTEM
+==================================================
+
+This is one of the most important modules.
+
+Support:
+- Thousands of photos per event.
+- Large photo files.
+- JPEG.
+- PNG.
+- WebP.
+- HEIC where processing support exists.
+- RAW formats through an explicitly defined preservation and processing policy.
+
+Upload features:
+- Bulk upload.
+- Drag and drop.
+- File selection.
+- Per-file progress.
+- Overall progress.
+- Pause where supported.
+- Resume interrupted uploads.
+- Retry failed uploads.
+- Cancel uploads.
+- Upload queue.
+- Upload history.
+- Duplicate detection.
+- Corrupt file detection.
+- File type validation.
+- File size validation.
+- Checksum verification.
+- Network interruption recovery.
+
+Architecture:
+- Direct browser-to-object-storage uploads.
+- Short-lived signed upload authorization.
+- Multipart uploads for supported large files.
+- Resumable upload sessions.
+- Controlled concurrent uploads.
+- Durable upload metadata.
+- Background processing queue.
+
+Never upload thousands of files through one long-running serverless function.
+
+Do not mark a photo as published merely because its upload request started.
+
+Verify the uploaded object before processing and publishing it.
+
+==================================================
+9. IMAGE PROCESSING SYSTEM
+==================================================
+
+Preserve the original HD image.
+
+Generate:
+- Small thumbnail.
+- Medium gallery image.
+- Large viewing image.
+- WebP/AVIF derivatives where supported.
+
+Implement:
+- EXIF orientation correction.
+- Metadata extraction.
+- Image decoder validation.
+- Corrupt image detection.
+- Unsupported format handling.
+- Image dimensions validation.
+- Thumbnail generation.
+- Optimized image delivery.
+- Retry failed processing jobs.
+
+Keep original files intact.
+
+Do not overwrite originals during image optimization.
+
+Use versioned object keys or another reliable strategy to avoid stale CDN cache issues.
+
+Image statuses:
+
+selected -> uploading -> uploaded -> processing -> published
+
+Failed images should support retry.
+
+Deleted images should follow a safe soft-delete and recovery process before permanent deletion.
+
+==================================================
+10. GUEST GALLERY
+==================================================
+
+Guest experience must be premium, fast and simple.
+
+Guests access galleries using:
+- Event QR code.
+- Event URL.
+
+Features:
+- Responsive photo gallery.
+- Masonry or suitable grid layout.
+- Album filtering.
+- Category filtering.
+- Search.
+- Cursor-based pagination.
+- Infinite scrolling where appropriate.
+- Lazy loading.
+- Full-screen photo viewer.
+- Zoom.
+- Previous and next navigation.
+- Slideshow.
+- Favourite photos.
+- Individual HD download.
+- Multiple photo selection.
+- ZIP download.
+- Copy photo link.
+- WhatsApp sharing.
+- Native device sharing.
+- Social preview metadata.
+
+Guests must have read-only permissions.
+
+Guests must not be able to upload, edit or delete photos.
+
+Do not load all 15,000 photos in one API response.
+
+==================================================
+11. LIVE PHOTO PUBLISHING
+==================================================
+
+When the photographer uploads and publishes a new photo, it should appear automatically in the guest gallery.
+
+Use a suitable realtime event system.
+
+Requirements:
+- Event-level realtime updates.
+- Avoid unnecessary subscriptions.
+- Handle disconnected realtime connections.
+- Add polling or refresh fallback.
+- Avoid duplicate photo insertion.
+- Ensure photos appear only after processing and publishing.
+- Handle worker failures and delayed processing.
+
+The guest must not see a broken or incomplete image.
+
+==================================================
+12. DOWNLOAD AND ZIP SYSTEM
+==================================================
+
+Implement a scalable download system.
+
+Support:
+- Individual HD downloads.
+- Multi-select downloads.
+- Favourite downloads.
+- ZIP archives.
+- Multiple ZIP parts.
+- Download job status.
+- Progress indicators.
+- Retry failed jobs.
+- Temporary download links.
+- Automatic archive cleanup.
+
+Use background workers for ZIP generation.
+
+Never load thousands of original photos into server memory.
+
+Never generate very large ZIP files inside normal serverless request handlers.
+
+Implement:
+- Job queue.
+- Job status.
+- Concurrency limits.
+- Failure handling.
+- Retry strategy.
+- Expiring signed download URLs.
+- Temporary storage cleanup.
+- Download abuse protection.
+
+ZIP size and part limits must be configurable and tested against real file sizes.
+
+==================================================
+13. DATABASE ARCHITECTURE
+==================================================
+
+Use a reliable relational database.
+
+Preferred option:
+Supabase PostgreSQL.
+
+Suggested entities:
+- photographer.
+- events.
+- albums.
+- photos.
+- upload_sessions.
+- favourites.
+- download_jobs.
+- qr_codes.
+- audit_logs.
+
+Requirements:
+- Proper primary keys.
+- Foreign key constraints.
+- Unique constraints.
+- Database indexes.
+- Transaction-safe operations.
+- Cursor-based pagination.
+- Query optimization.
+- Schema migrations.
+- Data validation.
+- Soft-delete support.
+- Audit logging.
+
+Store photo binaries in object storage, NOT PostgreSQL.
+
+PostgreSQL should store metadata, object keys, processing status and relevant references.
+
+Avoid N+1 queries and unbounded queries.
+
+Validate that every album and photo belongs to the correct event.
+
+Use connection pooling where appropriate.
+
+==================================================
+14. SECURITY AND ACCESS CONTROL
+==================================================
+
+Security is mandatory.
+
+Implement:
+- Supabase Auth or equivalent secure authentication.
+- Owner-only management permissions.
+- PostgreSQL Row Level Security.
+- Storage bucket policies.
+- Server-side authorization.
+- Secure signed URLs.
+- Short-lived upload authorization.
+- Input validation.
+- Output validation.
+- API rate limiting.
+- Abuse prevention.
+- Audit logs.
+- Secret management.
+- Secure password recovery.
+- Optional MFA.
+- Dependency vulnerability checks.
+
+Security requirements:
+- Guests cannot upload.
+- Guests cannot delete.
+- Guests cannot edit.
+- Guests cannot access owner dashboard.
+- Guests cannot access unpublished photos.
+- Guests cannot modify event ownership.
+- Guests cannot access other event metadata without the permitted public event access.
+- Guests cannot change event IDs to gain unauthorized access.
+- Storage write access must never be publicly available.
+- Private original images must not be exposed accidentally.
+
+Never expose:
+- Service role keys.
+- Storage secret keys.
+- Database passwords.
+- Private API secrets.
+- Signing secrets.
+
+Never put privileged credentials in frontend environment variables.
+
+RLS alone is not sufficient. Verify permissions in APIs, workers, storage and all background operations.
+
+==================================================
+15. PUBLIC GALLERY PRIVACY
+==================================================
+
+The guest gallery uses public event URLs and QR codes.
+
+Make the access model clear:
+- Published gallery photos are accessible to people who have the event link.
+- Event URLs and photo links may be forwarded.
+- Guests can download and share permitted photos.
+- Owner can deactivate an event.
+- Owner can remove or archive photos.
+- Owner can respond to photo removal requests.
+
+Do not pretend public-link access provides private or confidential sharing.
+
+==================================================
+16. HIGH TRAFFIC AND SCALABILITY
+==================================================
+
+Target:
+- 15,000+ photos per event.
+- 3,000+ concurrent guests per event.
+
+Use:
+- CDN.
+- Optimized thumbnails.
+- Responsive images.
+- Cache headers.
+- Database indexes.
+- Connection pooling.
+- Event metadata caching.
+- Pagination.
+- Rate limiting.
+- Controlled concurrency.
+- Background workers.
+- Durable queues.
+- Monitoring.
+- Load testing.
+
+Do not assume the infrastructure can support the target automatically.
+
+Identify bottlenecks and scale the relevant components based on measured results.
+
+==================================================
+17. STORAGE AND BANDWIDTH MANAGEMENT
+==================================================
+
+Implement:
+- Per-event storage usage.
+- Total photographer storage usage.
+- Original image count.
+- Optimized image count.
+- Storage growth monitoring.
+- Bandwidth monitoring.
+- Usage alerts.
+- Upload limits.
+- Configurable retention policies.
+- Temporary archive cleanup.
+- Backup storage planning.
+
+Prevent unexpected storage and bandwidth bills.
+
+Create a dashboard showing storage and usage.
+
+Do not silently delete original photos because a storage threshold has been reached.
+
+==================================================
+18. BACKUP AND DISASTER RECOVERY
+==================================================
+
+Wedding photographs are valuable and often irreplaceable.
+
+Protect:
+- Database.
+- Original images.
+- Processed images.
+- Configuration.
+- Migrations.
+
+Implement:
+- Automated database backups.
+- Storage versioning or independent backups.
+- Soft delete.
+- Configurable recovery retention.
+- Backup verification.
+- Restore testing.
+- Disaster recovery documentation.
+
+Proposed recovery targets:
+- Database RPO: 15 minutes or better where supported.
+- Service RTO: 4 hours or better.
+
+Do not claim these targets are achieved until actual provider configuration and restore tests confirm them.
+
+Perform regular restore drills.
+
+==================================================
+19. ALL POSSIBLE PRODUCTION PROBLEMS AND MITIGATIONS
+==================================================
+
+Audit and mitigate these problems.
+
+PHOTO UPLOAD:
+- Network interruption.
+- Upload timeout.
+- Duplicate files.
+- Corrupt files.
+- Unsupported file formats.
+- Large file upload failure.
+- Browser closed during upload.
+- Incorrect file orientation.
+- Lost EXIF metadata.
+- Worker crashes.
+- Partial multipart uploads.
+- Expired upload authorization.
+
+GALLERY:
+- Broken image URLs.
+- Missing storage objects.
+- Slow gallery.
+- Layout shifts.
+- Too many API requests.
+- Database query delays.
+- CDN stale cache.
+- Realtime disconnection.
+- Duplicate gallery records.
+- Low-memory mobile browser failures.
+
+TRAFFIC:
+- Sudden QR traffic spikes.
+- API overload.
+- Database connection exhaustion.
+- Realtime connection limits.
+- CDN or storage request spikes.
+- High bandwidth consumption.
+- Excessive ZIP jobs.
+
+DOWNLOADS:
+- ZIP generation timeout.
+- Worker memory exhaustion.
+- Interrupted downloads.
+- Expired signed links.
+- Large archive failure.
+- Duplicate ZIP jobs.
+- Temporary storage not cleaned.
+
+SECURITY:
+- Unauthorized access.
+- Exposed credentials.
+- IDOR vulnerabilities.
+- Weak authentication.
+- Malicious file uploads.
+- SQL injection.
+- Unauthorized photo deletion.
+- Public storage writes.
+- Brute-force login.
+- Excessive automated downloads.
+
+DATABASE:
+- Missing indexes.
+- Slow queries.
+- Duplicate records.
+- Incorrect event associations.
+- Connection exhaustion.
+- Inconsistent photo status.
+- Accidental deletion.
+- Failed migrations.
+
+INDIAN USER EXPERIENCE:
+- Slow mobile networks.
+- Hindi and Devanagari rendering problems.
+- HEIC compatibility.
+- WhatsApp preview problems.
+- Android and iPhone download differences.
+- QR printing problems.
+- Incorrect Indian date/time formatting.
+- Large HD downloads consuming mobile data.
+
+INFRASTRUCTURE:
+- Netlify deployment failure.
+- Backend outage.
+- Database outage.
+- Storage outage.
+- Domain expiration.
+- DNS problems.
+- SSL problems.
+- Unexpected cloud bills.
+- Failed backup restoration.
+
+For every identified problem:
+1. Explain the root cause.
+2. Explain its potential impact.
+3. Assign severity.
+4. Implement an appropriate mitigation.
+5. Add monitoring or alerting where applicable.
+6. Add a test that verifies the mitigation.
+
+Do not simply list problems without implementing or documenting the solution.
+
+==================================================
+20. MONITORING AND OBSERVABILITY
+==================================================
+
+Implement production monitoring.
+
+Track:
+- Frontend JavaScript errors.
+- Backend exceptions.
+- API latency.
+- API error rate.
+- Database performance.
+- Upload failures.
+- Processing queue backlog.
+- Failed background jobs.
+- ZIP failures.
+- Storage consumption.
+- Bandwidth.
+- CDN cache hit ratio.
+- Authentication failures.
+- Rate-limit events.
+
+Create useful alerts for:
+- High error rate.
+- High API latency.
+- Storage threshold reached.
+- Abnormal bandwidth increase.
+- Repeated failed uploads.
+- Queue backlog.
+- Database availability problems.
+- Backup failures.
+
+Never log passwords, access tokens, private signed URLs or sensitive personal information.
+
+==================================================
+21. PERFORMANCE AND RELIABILITY TESTING
+==================================================
+
+Perform realistic testing.
+
+FUNCTIONAL TESTING:
+- Owner login and logout.
+- Password recovery.
+- Event creation and editing.
+- Album creation and ordering.
+- QR generation.
+- Bulk upload.
+- Upload retry and resume.
+- Duplicate detection.
+- Image processing.
+- Gallery publishing.
+- Realtime updates.
+- Favourites.
+- HD downloads.
+- ZIP downloads.
+- Photo deletion and recovery.
+
+SECURITY TESTING:
+- Guest cannot upload.
+- Guest cannot delete.
+- Guest cannot edit.
+- Guest cannot access owner dashboard.
+- Guest cannot access unpublished photos.
+- Unauthorized event access is rejected.
+- Storage policies reject unauthorized writes.
+- Signed URL expiration works.
+- API authorization works.
+- Secret keys are absent from frontend bundles.
+- Rate limiting works.
+
+PERFORMANCE TESTING:
+- 15,000 photo records in an event.
+- 100 concurrent users.
+- 500 concurrent users.
+- 1,000 concurrent users.
+- 2,000 concurrent users.
+- 3,000 concurrent users.
+- Large upload batches.
+- Interrupted uploads.
+- Background worker restart.
+- ZIP generation under load.
+- Database connection saturation.
+- CDN caching.
+- Slow network simulation.
+
+Test incrementally. Do not proceed to the next load stage if the previous stage shows unresolved failures.
+
+COMPATIBILITY TESTING:
+- Android Chrome.
+- iPhone Safari.
+- Windows Chrome.
+- Microsoft Edge.
+- Firefox.
+- Low-memory Android devices.
+- Hindi and English content.
+- WhatsApp in-app browser.
+- Printed QR invitation cards.
+
+OPERATIONAL TESTING:
+- Database restore.
+- Storage recovery.
+- Failed job retry.
+- Monitoring alert.
+- Deployment rollback.
+- Domain and DNS recovery.
+- Owner account recovery.
+
+==================================================
+22. PERFORMANCE ACCEPTANCE TARGETS
+==================================================
+
+Use these as initial engineering targets, subject to infrastructure and region validation:
+
+- 15,000+ photos per event.
+- 3,000 concurrent guests.
+- Gallery metadata API p95 under 500 ms.
+- Static thumbnail delivery p95 under 1 second in the defined test region.
+- API error rate under 1% during expected load.
+- No unbounded database queries.
+- No critical security vulnerabilities.
+- No data loss during tested upload interruptions.
+- Failed jobs must be recoverable.
+- All original images must remain protected.
+- ZIP jobs must have bounded memory and execution resources.
+
+Report actual measured results.
+
+Do not fabricate successful test results.
+
+If a target is not met, report the exact bottleneck and recommended fix.
+
+==================================================
+23. DEPLOYMENT ARCHITECTURE
+==================================================
+
+Use separate environments:
+
+1. Local development.
+2. Staging/testing.
+3. Production.
+
+Frontend:
+- Netlify.
+- Custom domain.
+- SSL.
+- Environment-specific configuration.
+- Preview deployments.
+- Deployment rollback.
+
+Backend:
+- Production database.
+- Production object storage.
+- Secure server-side secrets.
+- Background worker deployment.
+- Queue monitoring.
+- Database migrations.
+
+Never experiment directly on production data.
+
+Never run destructive database migrations without backup and a rollback plan.
+
+Provide a deployment checklist and environment variable documentation.
+
+==================================================
+24. COST OPTIMIZATION
+==================================================
+
+Plan for:
+- Database compute and storage.
+- Original photo storage.
+- Image derivatives.
+- Backup storage.
+- CDN requests.
+- Bandwidth.
+- Background workers.
+- ZIP processing.
+- Monitoring.
+- Email services.
+- Domain and hosting.
+
+Implement:
+- Usage dashboards.
+- Budget alerts.
+- Per-event storage tracking.
+- Configurable upload limits.
+- ZIP job limits.
+- Temporary archive cleanup.
+- CDN caching.
+- Image optimization.
+- Backup retention policy.
+
+Provide realistic cost estimates using actual configured provider plans and measured usage.
+
+Do not invent fixed infrastructure costs.
+
+==================================================
+25. IMPORTANT EXCLUSIONS
+==================================================
+
+Do NOT implement:
+- Face recognition.
+- Selfie search.
+- AI face matching.
+- Guest photo uploads.
+- Guest wishes or messages.
+- Multi-photographer accounts.
+- Public photographer registration.
+- Subscription billing.
+- Individual photo privacy selectors.
+- Password-protected gallery selector.
+
+Keep the platform focused on one photographer managing multiple Indian wedding events.
+
+==================================================
+26. CODE QUALITY AND ENGINEERING RULES
+==================================================
+
+- Use TypeScript properly.
+- Avoid unnecessary any types.
+- Use reusable components.
+- Keep frontend, backend and worker responsibilities separate.
+- Validate all user input.
+- Handle errors gracefully.
+- Add loading and empty states.
+- Avoid dead buttons.
+- Avoid fake data in production.
+- Avoid hardcoded secrets.
+- Avoid unbounded queries.
+- Avoid downloading original images for gallery thumbnails.
+- Avoid memory-heavy ZIP generation.
+- Avoid unnecessary dependencies.
+- Document important architecture decisions.
+- Use version-controlled migrations.
+- Keep code maintainable.
+- Preserve existing functionality.
+- Do not silently replace working services.
+
+==================================================
+27. IMPLEMENTATION ORDER
+==================================================
+
+Work in the following phases.
+
+PHASE 1 – EXISTING PROJECT AUDIT
+Inspect and report all current issues.
+
+PHASE 2 – INDIAN CULTURAL REDESIGN
+Upgrade all pages and components with premium Indian wedding aesthetics.
+
+PHASE 3 – DATABASE AND BACKEND
+Implement safe schema improvements, permissions and backend reliability.
+
+PHASE 4 – UPLOAD AND IMAGE PROCESSING
+Implement robust bulk upload, verification and background processing.
+
+PHASE 5 – GALLERY AND GUEST EXPERIENCE
+Implement optimized gallery, QR access, favourites, sharing and downloads.
+
+PHASE 6 – SECURITY
+Complete permission, storage, API and vulnerability audits.
+
+PHASE 7 – PERFORMANCE AND SCALABILITY
+Optimize CDN, database, workers, caching and concurrency.
+
+PHASE 8 – BACKUP AND MONITORING
+Implement recovery, logging, alerting and operational documentation.
+
+PHASE 9 – TESTING
+Execute functional, security, compatibility, load and recovery testing.
+
+PHASE 10 – PRODUCTION DEPLOYMENT
+Deploy only after all critical launch blockers have been resolved.
+
+Do not skip phases.
+
+==================================================
+28. FINAL DELIVERABLES
+==================================================
+
+After implementation, provide:
+
+1. Existing project audit report.
+2. Complete list of bugs identified.
+3. Complete list of bugs fixed.
+4. Indian cultural redesign summary.
+5. Implemented features.
+6. Database architecture.
+7. Storage architecture.
+8. Upload architecture.
+9. ZIP download architecture.
+10. Security and authorization report.
+11. Performance optimization report.
+12. Backup and disaster recovery documentation.
+13. Monitoring and alerting setup.
+14. Actual test results.
+15. Actual load-test results.
+16. Confirmed concurrent user capacity.
+17. Storage and bandwidth cost estimates.
+18. Remaining known problems.
+19. Environment variable setup guide.
+20. Database migration instructions.
+21. Netlify deployment instructions.
+22. Production launch checklist.
+
+==================================================
+29. FINAL NON-NEGOTIABLE INSTRUCTIONS
+==================================================
+
+This is an existing production-oriented project.
+
+Do not rebuild from scratch.
+
+Do not destroy existing working features.
+
+Do not delete existing data.
+
+Do not use fake success messages.
+
+Do not claim production readiness without evidence.
+
+Do not claim 15,000 photo or 3,000 concurrent guest capacity without load-test results.
+
+Do not expose private credentials.
+
+Do not ignore security vulnerabilities.
+
+Do not leave dead buttons or incomplete critical workflows.
+
+Do not mark incomplete features as completed.
+
+If a feature requires an external account, cloud service, API key, billing activation or manual configuration, explain exactly what is required.
+
+If you cannot implement a feature safely, document the limitation rather than pretending it works.
+
+FIRST inspect the existing project. THEN create the audit report. THEN implement improvements in controlled phases.
+
+The final goal is a beautiful, premium, Indian-culture-focused, secure, reliable and commercially scalable AuraWed Wedding Photo Sharing platform.

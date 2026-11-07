@@ -236,6 +236,28 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     window.history.replaceState({}, '', url.toString());
   }, [currentView]);
 
+  // Restore owner access only from a verified Supabase Auth session.
+  useEffect(() => {
+    if (!supabaseClient) return;
+    let active = true;
+    const restoreSession = async () => {
+      const { data: { session } } = await supabaseClient!.auth.getSession();
+      const user = session?.user;
+      if (!active || !user || user.email?.toLowerCase() !== STUDIO_OWNER_EMAIL.toLowerCase()) return;
+      const { data: profile, error } = await supabaseClient!.from('photographer_profiles').select('*').eq('id', user.id).maybeSingle();
+      if (!active || error || !profile) return;
+      setPhotographer({ ...DEFAULT_PHOTOGRAPHER, id: user.id, email: user.email!, businessName: profile.business_name || DEFAULT_PHOTOGRAPHER.businessName, role: 'owner' });
+    };
+    void restoreSession();
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      if (!session || session.user.email?.toLowerCase() !== STUDIO_OWNER_EMAIL.toLowerCase()) {
+        setPhotographer(null);
+        localStorage.removeItem(STORAGE_KEYS.PHOTOGRAPHER);
+      }
+    });
+    return () => { active = false; subscription.unsubscribe(); };
+  }, []);
+
   // On initial load: If Supabase is configured, sync remote events and photos
   useEffect(() => {
     if (isSupabaseConfigured && supabaseClient) {
@@ -527,43 +549,27 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const photoId = `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       let storageProvider: 'supabase' | 'local' = 'local';
 
-      // If Supabase Storage is configured, attempt upload to cloud object storage
-      if (isSupabaseConfigured && supabaseClient) {
-        try {
-          const filePath = `${eventId}/${photoId}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-          const { error: uploadError } = await supabaseClient.storage
-            .from('wedding-photos')
-            .upload(filePath, file, { cacheControl: '3600', upsert: false });
-
-          if (!uploadError) {
-            const { data: publicUrlData } = supabaseClient.storage
-              .from('wedding-photos')
-              .getPublicUrl(filePath);
-
-            if (publicUrlData?.publicUrl) {
-              originalUrl = publicUrlData.publicUrl;
-              storageProvider = 'supabase';
-            }
-
-            // Insert metadata record into Supabase PostgreSQL
-            await supabaseClient.from('wedding_photos').insert({
-              id: photoId,
-              event_id: eventId,
-              photographer_id: photogId,
-              original_url: originalUrl,
-              thumbnail_url: thumbUrl,
-              filename: file.name,
-              file_size_bytes: file.size,
-              width: imgWidth,
-              height: imgHeight,
-              category: category || 'Wedding',
-              storage_provider: 'supabase',
-              processing_status: 'ready'
-            });
-          }
-        } catch (supabaseErr) {
-          console.warn('Supabase cloud upload failed, falling back to local engine:', supabaseErr);
-        }
+      const filePath = `${eventId}/${photoId}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: uploadError } = await supabaseClient!.storage.from('wedding-photos')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+      if (uploadError) throw new Error(`Storage upload failed for ${file.name}: ${uploadError.message}`);
+      const { data: publicUrlData } = supabaseClient!.storage.from('wedding-photos').getPublicUrl(filePath);
+      if (!publicUrlData.publicUrl) {
+        await supabaseClient!.storage.from('wedding-photos').remove([filePath]);
+        throw new Error('Could not create a public URL for the uploaded photo.');
+      }
+      originalUrl = publicUrlData.publicUrl;
+      storageProvider = 'supabase';
+      const { error: metadataError } = await supabaseClient!.from('wedding_photos').insert({
+        id: photoId, event_id: eventId, photographer_id: photogId,
+        original_url: originalUrl, thumbnail_url: originalUrl,
+        filename: file.name, file_size_bytes: file.size, width: imgWidth, height: imgHeight,
+        category: category || 'Wedding', storage_provider: 'supabase',
+        storage_path_original: filePath, processing_status: 'ready'
+      });
+      if (metadataError) {
+        await supabaseClient!.storage.from('wedding-photos').remove([filePath]);
+        throw new Error(`Photo metadata could not be saved: ${metadataError.message}`);
       }
 
       const newPhoto: WeddingPhoto = {

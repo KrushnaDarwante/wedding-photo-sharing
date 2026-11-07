@@ -401,7 +401,6 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setEvents(prev => [newEvent, ...prev]);
     return newEvent;
   }, [photographer]);
-  }, [photographer]);
 
   const updateEvent = useCallback((eventId: string, updates: Partial<WeddingEvent>) => {
     if (!photographer || !isStudioOwner(photographer.id)) {

@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS public.wedding_events (
   description TEXT,
   cover_photo_url TEXT NOT NULL,
   is_qr_active BOOLEAN NOT NULL DEFAULT TRUE,
+  deleted_at TIMESTAMPTZ DEFAULT NULL,
   qr_code_url TEXT,
   total_photos INT NOT NULL DEFAULT 0,
   total_views INT NOT NULL DEFAULT 0,
@@ -271,27 +272,61 @@ ON CONFLICT (id) DO UPDATE SET
   file_size_limit = 52428800,
   allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/avif'];
 
--- Policy A: Photographers can upload photos to the storage bucket
+-- Restrict storage writes to the owner of the event whose ID is the first
+-- folder in the object path: <event-uuid>/<photo-filename>.
+DROP POLICY IF EXISTS "Photographers can upload photos" ON storage.objects;
 CREATE POLICY "Photographers can upload photos"
   ON storage.objects
   FOR INSERT
   TO authenticated
-  WITH CHECK (bucket_id = 'wedding-photos');
+  WITH CHECK (
+    bucket_id = 'wedding-photos'
+    AND EXISTS (
+      SELECT 1 FROM public.wedding_events e
+      WHERE e.id::text = (storage.foldername(name))[1]
+        AND e.photographer_id = auth.uid()
+        AND e.deleted_at IS NULL
+    )
+  );
 
--- Policy B: Photographers can update or replace their photos
+DROP POLICY IF EXISTS "Photographers can update photos" ON storage.objects;
 CREATE POLICY "Photographers can update photos"
   ON storage.objects
   FOR UPDATE
   TO authenticated
-  USING (bucket_id = 'wedding-photos')
-  WITH CHECK (bucket_id = 'wedding-photos');
+  USING (
+    bucket_id = 'wedding-photos'
+    AND EXISTS (
+      SELECT 1 FROM public.wedding_events e
+      WHERE e.id::text = (storage.foldername(name))[1]
+        AND e.photographer_id = auth.uid()
+        AND e.deleted_at IS NULL
+    )
+  )
+  WITH CHECK (
+    bucket_id = 'wedding-photos'
+    AND EXISTS (
+      SELECT 1 FROM public.wedding_events e
+      WHERE e.id::text = (storage.foldername(name))[1]
+        AND e.photographer_id = auth.uid()
+        AND e.deleted_at IS NULL
+    )
+  );
 
--- Policy C: Photographers can delete their photos from storage
+DROP POLICY IF EXISTS "Photographers can delete photos" ON storage.objects;
 CREATE POLICY "Photographers can delete photos"
   ON storage.objects
   FOR DELETE
   TO authenticated
-  USING (bucket_id = 'wedding-photos');
+  USING (
+    bucket_id = 'wedding-photos'
+    AND EXISTS (
+      SELECT 1 FROM public.wedding_events e
+      WHERE e.id::text = (storage.foldername(name))[1]
+        AND e.photographer_id = auth.uid()
+        AND e.deleted_at IS NULL
+    )
+  );
 
 -- Policy D: Public guests can view and download photos from storage
 CREATE POLICY "Public guests can read and download wedding photos"

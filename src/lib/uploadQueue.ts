@@ -2,7 +2,6 @@
 import { createOptimizedThumbnail } from './imageHelper';
 import { verifyImageIntegrity } from './storageEngine';
 import { calculateDuplicateKey, validatePhotoFile } from '../utils/pureLogic';
-import { broadcastPhotoEvent } from './supabase';
 
 export interface QueueTask {
   id: string;
@@ -256,13 +255,6 @@ export class BulkUploadQueueManager {
     this.options.onItemProgress?.(task);
     this.options.onItemCompleted?.(newPhoto);
 
-    // Broadcast realtime event so open guest galleries automatically update without reload
-    broadcastPhotoEvent({
-      type: 'PHOTO_UPLOADED',
-      eventId: this.eventId,
-      photo: newPhoto,
-      timestamp: Date.now()
-    });
   }
 
   private updateBatchProgress() {

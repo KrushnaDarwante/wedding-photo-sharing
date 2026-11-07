@@ -90,7 +90,6 @@ const sanitizeAssetUrl = (url?: string): string => {
 export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 1. Photographer state - strictly initialized to null if no authenticated session exists in localStorage
   const [photographer, setPhotographer] = useState<PhotographerProfile | null>(null);
-  */
 
   // 2. Events state
   const [events, setEvents] = useState<WeddingEvent[]>(() => {

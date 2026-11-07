@@ -31,6 +31,7 @@ export const DatabaseCloudStoragePanel: React.FC = () => {
     tablesVerified: boolean;
     storageVerified: boolean;
     message: string;
+    storageError?: string;
   } | null>(null);
 
   const handleSave = (e: React.FormEvent) => {
@@ -119,7 +120,7 @@ export const DatabaseCloudStoragePanel: React.FC = () => {
             <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-600 mt-2 font-mono">
               <span>Database Query: {testResult.tablesVerified ? 'Verified OK' : 'Pending'}</span>
               <span>·</span>
-              <span>Storage Bucket: {testResult.storageVerified ? 'Active (wedding-photos)' : 'Missing'}</span>
+              <span>Storage Bucket: {testResult.storageVerified ? 'Active (wedding-photos)' : 'Check failed'}</span>
               {testResult.latencyMs !== undefined && (
                 <>
                   <span>·</span>
@@ -127,6 +128,11 @@ export const DatabaseCloudStoragePanel: React.FC = () => {
                 </>
               )}
             </div>
+            {!testResult.storageVerified && testResult.storageError && (
+              <div className="mt-3 rounded-lg border border-amber-200 bg-white/80 p-3 text-[11px] font-mono text-amber-900 break-words">
+                <strong>Storage error:</strong> {testResult.storageError}
+              </div>
+            )}
           </div>
         )}
 

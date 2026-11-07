@@ -500,12 +500,12 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     fileItems: { file: File; category: string }[],
     onProgress?: (index: number, total: number, photo: WeddingPhoto) => void
   ): Promise<WeddingPhoto[]> => {
-    if (!photographer || !isStudioOwner(photographer.id)) {
-      console.error('Permission denied: Guests and unauthorized users cannot upload photos.');
-      throw new Error('Unauthorized: Only the authenticated studio owner can upload photographs.');
+    const { data: { user } } = supabaseClient ? await supabaseClient.auth.getUser() : { data: { user: null } };
+    if (!photographer || !user || user.id !== photographer.id || user.email?.toLowerCase() !== STUDIO_OWNER_EMAIL.toLowerCase()) {
+      throw new Error('Unauthorized: Sign in with the studio owner account before uploading.');
     }
 
-    const photogId = photographer.id;
+    const photogId = user.id;
     const uploadedPhotosList: WeddingPhoto[] = [];
     const existingKeys = new Set(photos.map(p => calculateDuplicateKey(p.filename, p.fileSizeBytes, 0)));
 

@@ -158,10 +158,14 @@ export async function testSupabaseConnection(): Promise<{
     // 2. Test storage bucket access
     let storageVerified = false;
     try {
-      const { data: buckets, error: bucketError } = await supabaseClient.storage.listBuckets();
-      if (!bucketError && buckets) {
-        storageVerified = buckets.some(b => b.name === 'wedding-photos');
-      }
+      // Check access to the known bucket directly. listBuckets() requires
+      // permission to enumerate storage.buckets, which public clients should
+      // not need just to use a public-read bucket.
+      const { error: bucketError } = await supabaseClient
+        .storage
+        .from('wedding-photos')
+        .list('', { limit: 1 });
+      storageVerified = !bucketError;
     } catch {
       storageVerified = false;
     }

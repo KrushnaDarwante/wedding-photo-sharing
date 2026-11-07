@@ -124,6 +124,7 @@ export async function testSupabaseConnection(): Promise<{
   storageVerified: boolean;
   message: string;
   error?: string;
+  storageError?: string;
 }> {
   if (!isSupabaseConfigured || !supabaseClient) {
     return {
@@ -157,6 +158,7 @@ export async function testSupabaseConnection(): Promise<{
 
     // 2. Test storage bucket access
     let storageVerified = false;
+    let storageError: string | undefined;
     try {
       // Check access to the known bucket directly. listBuckets() requires
       // permission to enumerate storage.buckets, which public clients should
@@ -166,8 +168,10 @@ export async function testSupabaseConnection(): Promise<{
         .from('wedding-photos')
         .list('', { limit: 1 });
       storageVerified = !bucketError;
-    } catch {
+      if (bucketError) storageError = bucketError.message;
+    } catch (storageErr: any) {
       storageVerified = false;
+      storageError = storageErr?.message || 'Unknown Storage request error';
     }
 
     return {
@@ -175,9 +179,10 @@ export async function testSupabaseConnection(): Promise<{
       latencyMs,
       tablesVerified: true,
       storageVerified,
+      storageError,
       message: storageVerified
         ? `Connected to Supabase in ${latencyMs}ms. PostgreSQL tables and 'wedding-photos' bucket are verified.`
-        : `Connected to Supabase in ${latencyMs}ms. Database tables verified. Storage bucket 'wedding-photos' needs creation.`
+        : `Connected to Supabase in ${latencyMs}ms. Database tables verified, but the Storage check failed. See the Storage error below.`
     };
   } catch (err: any) {
     return {

@@ -545,7 +545,7 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       let originalUrl = URL.createObjectURL(file);
-      const photoId = `photo_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const photoId = crypto.randomUUID();
       let storageProvider: 'supabase' | 'local' = 'local';
 
       const filePath = `${eventId}/${photoId}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;

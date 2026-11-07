@@ -64,20 +64,42 @@ export const BulkUploader: React.FC<BulkUploaderProps> = ({
         onAllFinished: (successful, failed) => {
           setIsProcessing(false);
           setIsPaused(false);
-          if (successful.length > 0) {
-            uploadPhotoBatch(
-              eventId,
-              successful.map(p => ({
-                file: new File([], p.filename),
-                category: p.category
-              }))
+
+          if (successful.length === 0) {
+            setSummaryMessage(
+              `No photographs were uploaded. ${failed.length} file(s) failed validation or processing.`
             );
+            return;
           }
-          setSummaryMessage(
-            `Upload batch finished: ${successful.length} photo${successful.length === 1 ? '' : 's'} successfully published.` +
-            (failed.length > 0 ? ` (${failed.length} failed/skipped)` : '')
-          );
-          onUploadFinished?.();
+
+          // Pass the original File objects to the real storage pipeline.
+          // Never create empty placeholder files: they contain no photograph bytes.
+          const completedTasks = queueManagerRef.current?.getAllTasks() || [];
+          const uploadItems = successful.flatMap(photo => {
+            const task = completedTasks.find(item => item.resultPhoto?.id === photo.id);
+            return task ? [{ file: task.file, category: task.category }] : [];
+          });
+
+          if (uploadItems.length !== successful.length) {
+            setSummaryMessage('Upload stopped: one or more original files could not be matched to the queue.');
+            return;
+          }
+
+          setSummaryMessage(`Saving ${uploadItems.length} validated photograph(s) to storage...`);
+          void uploadPhotoBatch(eventId, uploadItems)
+            .then(savedPhotos => {
+              const skipped = successful.length - savedPhotos.length + failed.length;
+              setSummaryMessage(
+                `Upload finished: ${savedPhotos.length} photograph(s) saved successfully.` +
+                (skipped > 0 ? ` ${skipped} file(s) failed or were skipped.` : '')
+              );
+              if (savedPhotos.length > 0) onUploadFinished?.();
+            })
+            .catch(error => {
+              setSummaryMessage(
+                `Upload failed: ${error instanceof Error ? error.message : 'Storage could not save the photographs.'}`
+              );
+            });
         }
       }
     );

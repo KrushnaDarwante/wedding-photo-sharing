@@ -17,7 +17,6 @@ import {
   generateSlug,
   validatePhotoFile,
   calculateDuplicateKey,
-  STUDIO_OWNER_ID,
   STUDIO_OWNER_EMAIL,
   isStudioOwner,
   validatePasswordResetEmail
@@ -90,20 +89,8 @@ const sanitizeAssetUrl = (url?: string): string => {
 
 export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 1. Photographer state - strictly initialized to null if no authenticated session exists in localStorage
-  const [photographer, setPhotographer] = useState<PhotographerProfile | null>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.PHOTOGRAPHER);
-      if (saved) {
-        const parsed: PhotographerProfile = JSON.parse(saved);
-        if (isStudioOwner(parsed.id)) {
-          return { ...parsed, logoUrl: sanitizeAssetUrl(parsed.logoUrl) };
-        }
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  });
+  const [photographer, setPhotographer] = useState<PhotographerProfile | null>(null);
+  */
 
   // 2. Events state
   const [events, setEvents] = useState<WeddingEvent[]>(() => {
@@ -333,52 +320,32 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Auth methods - Single Photographer (Studio Owner)
   const login = useCallback(async (email: string, pass: string) => {
-    if (!email || !email.includes('@')) {
-      return { success: false, error: 'Please provide a valid studio owner email address.' };
-    }
-    if (!pass || pass.trim().length < 4) {
-      return { success: false, error: 'Password must be at least 4 characters.' };
-    }
-
-    const trimmedEmail = email.trim().toLowerCase();
-    const authorizedEmail = STUDIO_OWNER_EMAIL.toLowerCase();
-
-    // Enforce single-photographer studio owner authentication
-    if (trimmedEmail !== authorizedEmail && trimmedEmail !== 'owner@vedicvows.com') {
-      return {
-        success: false,
-        error: 'Access denied: Only the authorized studio owner email can access this administrative portal.'
-      };
-    }
-
-    const profile: PhotographerProfile = {
-      ...DEFAULT_PHOTOGRAPHER,
-      id: STUDIO_OWNER_ID,
-      role: 'owner',
-      email: trimmedEmail
-    };
-    setPhotographer(profile);
-    localStorage.setItem(STORAGE_KEYS.PHOTOGRAPHER, JSON.stringify(profile));
+    if (!supabaseClient) return { success: false, error: 'Supabase is not configured.' };
+    const normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail !== STUDIO_OWNER_EMAIL.toLowerCase()) return { success: false, error: 'Access denied: unauthorized studio owner email.' };
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email: normalizedEmail, password: pass });
+    if (error || !data.user) return { success: false, error: error?.message || 'Authentication failed.' };
+    const user = data.user;
+    const { error: profileError } = await supabaseClient.from('photographer_profiles').upsert({ id: user.id, email: normalizedEmail, business_name: DEFAULT_PHOTOGRAPHER.businessName }, { onConflict: 'id' });
+    if (profileError) { await supabaseClient.auth.signOut(); return { success: false, error: profileError.message }; }
+    setPhotographer({ ...DEFAULT_PHOTOGRAPHER, id: user.id, role: 'owner', email: normalizedEmail });
     return { success: true };
   }, []);
 
   const requestPasswordReset = useCallback(async (email: string) => {
     const val = validatePasswordResetEmail(email);
-    if (!val.valid) {
-      return { success: false, error: val.error };
-    }
-    return {
-      success: true,
-      message: `A secure password reset verification link has been dispatched to ${email}.`
-    };
+    if (!val.valid) return { success: false, error: val.error };
+    if (!supabaseClient) return { success: false, error: 'Supabase is not configured.' };
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email.trim().toLowerCase());
+    return error ? { success: false, error: error.message } : { success: true, message: 'Password reset email requested. Check your inbox.' };
   }, []);
 
   const logout = useCallback(() => {
+    void supabaseClient?.auth.signOut();
     setPhotographer(null);
     localStorage.removeItem(STORAGE_KEYS.PHOTOGRAPHER);
     setCurrentView({ type: 'home' });
   }, []);
-
   const updatePhotographerProfile = useCallback((updates: Partial<PhotographerProfile>) => {
     if (!photographer || !isStudioOwner(photographer.id)) {
       throw new Error('Unauthorized: Only the studio owner can update profile settings.');
@@ -387,20 +354,21 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [photographer]);
 
   // Event Management - strictly protected
-  const createEvent = useCallback((data: {
+  const createEvent = useCallback(async (data: {
     coupleNames: string;
     weddingDate: string;
     venue?: string;
     description?: string;
     coverPhotoUrl?: string;
     categories?: string[];
-  }): WeddingEvent => {
-    if (!photographer || !isStudioOwner(photographer.id)) {
+  }): Promise<WeddingEvent> => {
+    const { data: { user } } = supabaseClient ? await supabaseClient.auth.getUser() : { data: { user: null } };
+    if (!photographer || !user || user.id !== photographer.id || !isStudioOwner(user.id)) {
       throw new Error('Unauthorized: Only the authenticated studio owner can create wedding events.');
     }
 
     const baseSlug = generateSlug(data.coupleNames, data.weddingDate);
-    const id = `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const id = crypto.randomUUID();
 
     const newEvent: WeddingEvent = {
       id,
@@ -423,27 +391,16 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       updatedAt: new Date().toISOString()
     };
 
+    if (!supabaseClient) throw new Error('Supabase is not configured.');
+    const { error } = await supabaseClient.from('wedding_events').insert({
+      id: newEvent.id, photographer_id: user.id, couple_names: newEvent.coupleNames, slug: newEvent.slug,
+      wedding_date: newEvent.weddingDate, venue: newEvent.venue, description: newEvent.description,
+      cover_photo_url: newEvent.coverPhotoUrl, is_qr_active: newEvent.isQrActive, categories: newEvent.categories
+    });
+    if (error) throw new Error(`Event could not be saved: ${error.message}`);
     setEvents(prev => [newEvent, ...prev]);
-
-    // If Supabase is connected, insert into remote database
-    if (isSupabaseConfigured && supabaseClient) {
-      supabaseClient.from('wedding_events').insert({
-        id: newEvent.id,
-        photographer_id: newEvent.photographerId,
-        couple_names: newEvent.coupleNames,
-        slug: newEvent.slug,
-        wedding_date: newEvent.weddingDate,
-        venue: newEvent.venue,
-        description: newEvent.description,
-        cover_photo_url: newEvent.coverPhotoUrl,
-        is_qr_active: newEvent.isQrActive,
-        categories: newEvent.categories
-      }).then(({ error }) => {
-        if (error) console.warn('Supabase event sync error:', error.message);
-      });
-    }
-
     return newEvent;
+  }, [photographer]);
   }, [photographer]);
 
   const updateEvent = useCallback((eventId: string, updates: Partial<WeddingEvent>) => {

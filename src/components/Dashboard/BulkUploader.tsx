@@ -64,20 +64,32 @@ export const BulkUploader: React.FC<BulkUploaderProps> = ({
         onAllFinished: (successful, failed) => {
           setIsProcessing(false);
           setIsPaused(false);
-          if (successful.length > 0) {
-            uploadPhotoBatch(
-              eventId,
-              successful.map(p => ({
-                file: new File([], p.filename),
-                category: p.category
-              }))
+          const completedTasks = queueManagerRef.current?.getAllTasks() || [];
+          const fileItems = successful.flatMap(photo => {
+            const task = completedTasks.find(item => item.resultPhoto?.id === photo.id);
+            return task ? [{ file: task.file, category: photo.category }] : [];
+          });
+
+          if (fileItems.length === 0) {
+            setSummaryMessage(
+              `No photos were ready to upload to cloud storage.` +
+              (failed.length > 0 ? ` (${failed.length} failed/skipped)` : '')
             );
+            return;
           }
-          setSummaryMessage(
-            `Upload batch finished: ${successful.length} photo${successful.length === 1 ? '' : 's'} successfully published.` +
-            (failed.length > 0 ? ` (${failed.length} failed/skipped)` : '')
-          );
-          onUploadFinished?.();
+
+          void uploadPhotoBatch(eventId, fileItems)
+            .then(uploaded => {
+              setSummaryMessage(
+                `Cloud upload finished: ${uploaded.length} photo${uploaded.length === 1 ? '' : 's'} saved.` +
+                (failed.length > 0 ? ` (${failed.length} failed/skipped in validation)` : '')
+              );
+              onUploadFinished?.();
+            })
+            .catch(error => {
+              const message = error instanceof Error ? error.message : 'Unknown upload error';
+              setSummaryMessage(`Cloud upload failed: ${message}`);
+            });
         }
       }
     );

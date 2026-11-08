@@ -90,6 +90,11 @@ export const GuestGalleryView: React.FC<GuestGalleryViewProps> = ({
   // Progressive rendering / pagination (36 photos per slice for 15,000 photo scale)
   const [visibleCount, setVisibleCount] = useState<number>(36);
 
+  // Keep this hook above every conditional return so hook order stays stable.
+  useEffect(() => {
+    setVisibleCount(36);
+  }, [selectedCategory, searchQuery, onlyFavorites]);
+
   // Lightbox, Slideshow, Share, and Bulk Download modals
   const [activeLightboxPhotoId, setActiveLightboxPhotoId] = useState<string | null>(initialPhotoId || null);
   const [isSlideshowOpen, setIsSlideshowOpen] = useState(false);
@@ -179,9 +184,7 @@ export const GuestGalleryView: React.FC<GuestGalleryViewProps> = ({
   });
 
   // Progressive rendering window (36 per page, auto-scales to 15,000 photos)
-  useEffect(() => {
-    setVisibleCount(36);
-  }, [selectedCategory, searchQuery, onlyFavorites]);
+
 
   const displayedPhotos = filteredPhotos.slice(0, visibleCount);
 

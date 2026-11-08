@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useWedding } from '../../context/WeddingContext';
+import { fetchEventsFromSupabase } from '../../lib/supabase';
 import { WeddingPhoto } from '../../types';
 import { LightboxModal } from './LightboxModal';
 import { SlideshowModal } from './SlideshowModal';
@@ -51,6 +52,35 @@ export const GuestGalleryView: React.FC<GuestGalleryViewProps> = ({
     setCurrentView
   } = useWedding();
 
+  const [remoteEvent, setRemoteEvent] = useState<import('../../types').WeddingEvent | null>(null);
+  const [isResolvingEvent, setIsResolvingEvent] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const resolveEvent = async () => {
+      const localMatch = events.find(item => item.slug === eventSlug);
+      if (localMatch) {
+        setRemoteEvent(localMatch);
+        setIsResolvingEvent(false);
+        return;
+      }
+      setIsResolvingEvent(true);
+      try {
+        const remoteEvents = await fetchEventsFromSupabase();
+        if (!active) return;
+        const match = remoteEvents?.find(item => item.slug === eventSlug && item.isQrActive);
+        setRemoteEvent(match || null);
+      } catch (error) {
+        console.error('Guest gallery event lookup failed:', error);
+        if (active) setRemoteEvent(null);
+      } finally {
+        if (active) setIsResolvingEvent(false);
+      }
+    };
+    void resolveEvent();
+    return () => { active = false; };
+  }, [eventSlug, events]);
+
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [onlyFavorites, setOnlyFavorites] = useState(false);
@@ -75,13 +105,23 @@ export const GuestGalleryView: React.FC<GuestGalleryViewProps> = ({
   const [zipFinished, setZipFinished] = useState(false);
 
   // Find matching event
-  const event = events.find(e => e.slug === eventSlug) || null;
+  const event = events.find(e => e.slug === eventSlug) || remoteEvent;
 
   useEffect(() => {
     if (event) {
       recordEventVisit(event.id);
     }
   }, [event?.id]);
+
+  if (!event && isResolvingEvent) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-10 h-10 rounded-full border-4 border-[#E8E2D8] border-t-[#9A7B4F] animate-spin mb-4" />
+        <h2 className="font-serif-luxury text-2xl font-bold text-slate-900 mb-2">Loading Wedding Gallery</h2>
+        <p className="text-sm text-slate-500">Connecting to the studio gallery…</p>
+      </div>
+    );
+  }
 
   if (!event) {
     return (

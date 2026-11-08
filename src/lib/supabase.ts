@@ -158,13 +158,22 @@ export async function testSupabaseConnection(): Promise<{
 
     // 2. Test storage bucket access
     let storageVerified = false;
+    let storageCheckError: string | undefined;
+    let storageBucketMissing = false;
     try {
       const { data: buckets, error: bucketError } = await supabaseClient.storage.listBuckets();
-      if (!bucketError && buckets) {
-        storageVerified = buckets.some(b => b.name === 'wedding-photos');
+      if (bucketError) {
+        // Listing buckets can be denied to client-safe anon keys even when a bucket exists.
+        // Do not report a missing bucket unless the listing itself succeeded.
+        storageCheckError = bucketError.message;
+      } else if (buckets) {
+        storageVerified = buckets.some(b => b.id === 'wedding-photos' || b.name === 'wedding-photos');
+        storageBucketMissing = !storageVerified;
+      } else {
+        storageCheckError = 'Supabase did not return a bucket list.';
       }
-    } catch {
-      storageVerified = false;
+    } catch (storageError: any) {
+      storageCheckError = storageError?.message || 'Storage bucket check failed.';
     }
 
     return {
@@ -172,9 +181,12 @@ export async function testSupabaseConnection(): Promise<{
       latencyMs,
       tablesVerified: true,
       storageVerified,
+      storageCheckError,
       message: storageVerified
         ? `Connected to Supabase in ${latencyMs}ms. PostgreSQL tables and 'wedding-photos' bucket are verified.`
-        : `Connected to Supabase in ${latencyMs}ms. Database tables verified. Storage bucket 'wedding-photos' needs creation.`
+        : storageBucketMissing
+          ? `Connected to Supabase in ${latencyMs}ms. Database tables verified. Storage bucket 'wedding-photos' was not found.`
+          : `Connected to Supabase in ${latencyMs}ms. Database tables verified. Storage bucket status could not be verified (this does not mean it is missing).`
     };
   } catch (err: any) {
     return {

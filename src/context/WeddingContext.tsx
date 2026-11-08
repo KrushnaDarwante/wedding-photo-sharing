@@ -51,7 +51,7 @@ interface WeddingContextType {
   logout: () => void;
   updatePhotographerProfile: (updates: Partial<PhotographerProfile>) => void;
   createEvent: (data: { coupleNames: string; weddingDate: string; venue?: string; description?: string; coverPhotoUrl?: string; categories?: string[] }) => WeddingEvent;
-  updateEvent: (eventId: string, updates: Partial<WeddingEvent>) => void;
+  updateEvent: (eventId: string, updates: Partial<WeddingEvent>) => Promise<void>;
   deleteEvent: (eventId: string) => void;
   toggleEventQr: (eventId: string, active: boolean) => void;
   regenerateQrSlug: (eventId: string) => string;

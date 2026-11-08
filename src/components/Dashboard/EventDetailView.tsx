@@ -76,14 +76,13 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateEvent(event.id, {
-      coupleNames,
-      weddingDate,
-      venue,
-      description
-    });
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    try {
+      await updateEvent(event.id, { coupleNames, weddingDate, venue, description });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Could not save event details.');
+    }
   };
 
   const handleDelete = () => {

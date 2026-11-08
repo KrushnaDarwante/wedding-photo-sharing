@@ -46,7 +46,11 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
   const [weddingDate, setWeddingDate] = useState(event?.weddingDate || '');
   const [venue, setVenue] = useState(event?.venue || '');
   const [description, setDescription] = useState(event?.description || '');
-  const [saveSuccess, setSaveSuccess] = useState(false);\n  const [showCoverPicker, setShowCoverPicker] = useState(false);\n  const [selectedCoverUrl, setSelectedCoverUrl] = useState(event?.coverPhotoUrl || '');\n  const [coverSaveState, setCoverSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');\n  const [coverSaveError, setCoverSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showCoverPicker, setShowCoverPicker] = useState(false);
+  const [selectedCoverUrl, setSelectedCoverUrl] = useState(event?.coverPhotoUrl || '');
+  const [coverSaveState, setCoverSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [coverSaveError, setCoverSaveError] = useState('');
 
   if (!event) {
     return (

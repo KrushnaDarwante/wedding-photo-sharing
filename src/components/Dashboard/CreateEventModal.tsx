@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { WEDDING_CATEGORIES } from '../../lib/constants';
+import { fetchPhotosFromSupabase } from '../../lib/supabase';
 import { X, Calendar, MapPin, Heart, Image as ImageIcon, Sparkles } from 'lucide-react';
 
 interface CreateEventModalProps {
@@ -29,12 +30,31 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
   onClose,
   onEventCreated
 }) => {
-  const { createEvent } = useWedding();
+  const { createEvent, photos } = useWedding();
   const [coupleNames, setCoupleNames] = useState('');
   const [weddingDate, setWeddingDate] = useState(new Date().toISOString().split('T')[0]);
   const [venue, setVenue] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCover, setSelectedCover] = useState(PRESET_COVERS[0].url);
+  const [showUploadedPhotos, setShowUploadedPhotos] = useState(false);
+  const [uploadedPhotos, setUploadedPhotos] = useState(photos);
+  const [loadingUploadedPhotos, setLoadingUploadedPhotos] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setUploadedPhotos(photos);
+  }, [isOpen, photos]);
+
+  const openUploadedPhotoPicker = async () => {
+    setShowUploadedPhotos(true);
+    setLoadingUploadedPhotos(true);
+    try {
+      const remotePhotos = await fetchPhotosFromSupabase();
+      if (remotePhotos) setUploadedPhotos(remotePhotos);
+    } finally {
+      setLoadingUploadedPhotos(false);
+    }
+  };
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     'Ceremony',
     'Portraits',
@@ -202,6 +222,62 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 </div>
               ))}
             </div>
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={openUploadedPhotoPicker}
+                className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg border border-[#9A7B4F]/40 text-[#80623D] hover:bg-[#9A7B4F]/10 transition-colors"
+              >
+                <ImageIcon className="w-4 h-4" />
+                Choose from Uploaded Photos
+              </button>
+              {selectedCover && (
+                <div className="mt-3 flex items-center gap-3 rounded-xl border border-slate-200 p-2 bg-slate-50">
+                  <img src={selectedCover} alt="Selected gallery cover" className="w-24 h-14 rounded-lg object-cover" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-slate-700">Current cover photo</p>
+                    <p className="text-[10px] text-slate-500">This image will be used on the event gallery card.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            {showUploadedPhotos && (
+              <div className="mt-4 rounded-xl border border-[#E8E2D8] p-3 bg-[#FCFBF9]">
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-800">Choose from Uploaded Photos</h3>
+                    <p className="text-[10px] text-slate-500">Select an existing studio photo. It will not be uploaded again.</p>
+                  </div>
+                  <button type="button" onClick={() => setShowUploadedPhotos(false)} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-200" aria-label="Close photo picker">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                {loadingUploadedPhotos ? (
+                  <p className="py-6 text-center text-xs text-slate-500">Loading uploaded photos...</p>
+                ) : uploadedPhotos.length === 0 ? (
+                  <p className="py-6 text-center text-xs text-slate-500">No uploaded studio photos found yet. Upload photos to any event first.</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">
+                    {uploadedPhotos.map((photo) => (
+                      <button
+                        type="button"
+                        key={photo.id}
+                        onClick={() => setSelectedCover(photo.originalUrl)}
+                        className={`relative overflow-hidden rounded-lg border-2 text-left aspect-[4/3] ${selectedCover === photo.originalUrl ? 'border-[#9A7B4F] ring-2 ring-[#9A7B4F]/30' : 'border-slate-200 hover:border-[#9A7B4F]/60'}`}
+                        aria-pressed={selectedCover === photo.originalUrl}
+                      >
+                        <img src={photo.thumbnailUrl || photo.originalUrl} alt={photo.filename || 'Uploaded studio photo'} loading="lazy" className="w-full h-full object-cover" />
+                        {selectedCover === photo.originalUrl && <span className="absolute top-1.5 right-1.5 rounded-full bg-[#9A7B4F] text-white text-[9px] px-2 py-1">Selected</span>}
+                        <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] px-2 py-1 truncate">{photo.filename}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="flex justify-end mt-3">
+                  <button type="button" onClick={() => setShowUploadedPhotos(false)} className="px-3 py-2 rounded-lg bg-[#1E1B18] text-white text-xs font-semibold hover:bg-black">Set as Cover Photo</button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Categories to Enable */}

@@ -33,7 +33,7 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
   initialTab = 'photos',
   onBack
 }) => {
-  const { events, updateEvent, deleteEvent, setCurrentView, photographer } = useWedding();
+  const { events, photos, updateEvent, deleteEvent, setCurrentView, photographer } = useWedding();
   const [activeTab, setActiveTab] = useState<'photos' | 'qr' | 'analytics' | 'settings'>(initialTab);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [showPrintCard, setShowPrintCard] = useState(false);
@@ -47,6 +47,10 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
   const [venue, setVenue] = useState(event?.venue || '');
   const [description, setDescription] = useState(event?.description || '');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showCoverPicker, setShowCoverPicker] = useState(false);
+  const [selectedCoverUrl, setSelectedCoverUrl] = useState(event?.coverPhotoUrl || '');
+  const [coverSaveState, setCoverSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [coverSaveError, setCoverSaveError] = useState('');
 
   if (!event) {
     return (
@@ -74,16 +78,15 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
     }
   };
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateEvent(event.id, {
-      coupleNames,
-      weddingDate,
-      venue,
-      description
-    });
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    try {
+      await updateEvent(event.id, { coupleNames, weddingDate, venue, description });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Could not save event details.');
+    }
   };
 
   const handleDelete = () => {
@@ -252,6 +255,46 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
           <h3 className="font-serif-luxury text-xl font-bold text-slate-900">
             Edit Wedding Details
           </h3>
+          <div className="rounded-xl border border-[#E8E2D8] p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900">Event Cover Photo</h4>
+                <p className="text-xs text-slate-500">Choose an already uploaded studio photo. No duplicate upload.</p>
+              </div>
+              <button type="button" onClick={() => { setSelectedCoverUrl(event.coverPhotoUrl); setShowCoverPicker(v => !v); }}
+                className="px-3 py-2 text-xs font-semibold rounded-lg border border-[#E3DAC9] hover:bg-[#FAF5EB]">
+                {showCoverPicker ? 'Close photo picker' : 'Change Cover Photo'}
+              </button>
+            </div>
+            <img src={selectedCoverUrl || event.coverPhotoUrl} alt="Selected event cover" className="w-full max-w-sm aspect-video object-cover rounded-lg bg-slate-100" />
+            {showCoverPicker && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-80 overflow-y-auto">
+                {photos.filter(photo => photo.originalUrl && photo.deletedAt == null).map(photo => (
+                  <button key={photo.id} type="button" onClick={() => { setSelectedCoverUrl(photo.originalUrl); setCoverSaveState('idle'); }}
+                    className={`rounded-lg overflow-hidden border-2 text-left ${selectedCoverUrl === photo.originalUrl ? 'border-[#9A7B4F]' : 'border-transparent'}`}>
+                    <img src={photo.thumbnailUrl || photo.originalUrl} alt={photo.filename} className="w-full aspect-[4/3] object-cover" />
+                    <span className="block text-[10px] p-1 truncate">{photo.filename}</span>
+                  </button>
+                ))}
+                {photos.filter(photo => photo.originalUrl && photo.deletedAt == null).length === 0 && (
+                  <p className="col-span-full text-xs text-slate-500">No uploaded photos are available yet.</p>
+                )}
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <button type="button" disabled={!selectedCoverUrl || selectedCoverUrl === event.coverPhotoUrl || coverSaveState === 'saving'}
+                onClick={async () => {
+                  setCoverSaveState('saving'); setCoverSaveError('');
+                  try { await updateEvent(event.id, { coverPhotoUrl: selectedCoverUrl }); setCoverSaveState('saved'); setShowCoverPicker(false); }
+                  catch (error) { setCoverSaveState('error'); setCoverSaveError(error instanceof Error ? error.message : 'Could not update cover photo.'); }
+                }}
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#1E1B18] rounded-lg disabled:opacity-40">
+                {coverSaveState === 'saving' ? 'Saving…' : 'Save Cover Photo'}
+              </button>
+              {coverSaveState === 'saved' && <span className="text-xs text-emerald-700">Cover updated for guests.</span>}
+              {coverSaveError && <span className="text-xs text-red-600">{coverSaveError}</span>}
+            </div>
+          </div>
 
           {saveSuccess && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">

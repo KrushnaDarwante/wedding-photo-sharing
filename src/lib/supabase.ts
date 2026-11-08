@@ -44,6 +44,7 @@ export interface RealtimePhotoBroadcastPayload {
   type: 'PHOTO_UPLOADED' | 'PHOTO_DELETED' | 'EVENT_UPDATED';
   eventId: string;
   photo?: any;
+  event?: any;
   timestamp: number;
 }
 

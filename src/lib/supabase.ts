@@ -123,6 +123,7 @@ export async function testSupabaseConnection(): Promise<{
   latencyMs?: number;
   tablesVerified: boolean;
   storageVerified: boolean;
+  storageCheckError?: string;
   message: string;
   error?: string;
 }> {
@@ -156,21 +157,25 @@ export async function testSupabaseConnection(): Promise<{
       };
     }
 
-    // 2. Test storage bucket access
+    // 2. Verify the known bucket directly instead of listing all buckets.
+    // listBuckets() may return an incomplete/empty list to publishable-key clients
+    // even when the bucket exists. Listing objects in this known bucket checks the
+    // bucket endpoint without requiring permission to enumerate project buckets.
     let storageVerified = false;
     let storageCheckError: string | undefined;
     let storageBucketMissing = false;
     try {
-      const { data: buckets, error: bucketError } = await supabaseClient.storage.listBuckets();
-      if (bucketError) {
-        // Listing buckets can be denied to client-safe anon keys even when a bucket exists.
-        // Do not report a missing bucket unless the listing itself succeeded.
-        storageCheckError = bucketError.message;
-      } else if (buckets) {
-        storageVerified = buckets.some(b => b.id === 'wedding-photos' || b.name === 'wedding-photos');
-        storageBucketMissing = !storageVerified;
+      const { error: bucketError } = await supabaseClient.storage
+        .from('wedding-photos')
+        .list('', { limit: 1 });
+
+      if (!bucketError) {
+        storageVerified = true;
+      } else if (/bucket not found|does not exist|not found/i.test(bucketError.message)) {
+        storageBucketMissing = true;
       } else {
-        storageCheckError = 'Supabase did not return a bucket list.';
+        // Permission/network errors do not prove the bucket is missing.
+        storageCheckError = bucketError.message;
       }
     } catch (storageError: any) {
       storageCheckError = storageError?.message || 'Storage bucket check failed.';

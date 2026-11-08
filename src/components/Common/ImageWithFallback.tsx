@@ -41,7 +41,22 @@ export const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
     setCurrentSrc(nextUrl);
     setIsLoading(true);
     setHasError(false);
-  }, [src]);
+
+    // Do not leave the gallery cover stuck on a spinner if a remote image
+    // takes too long to respond. Show the branded fallback after 12 seconds.
+    const timeoutId = window.setTimeout(() => {
+      setIsLoading((stillLoading) => {
+        if (stillLoading) {
+          setHasError(true);
+          setCurrentSrc(generateIndianRoyalSvgFallback(ritualCategory, alt, coupleNames));
+          return false;
+        }
+        return stillLoading;
+      });
+    }, 12000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [src, ritualCategory, alt, coupleNames]);
 
   const handleError = () => {
     if (!hasError) {

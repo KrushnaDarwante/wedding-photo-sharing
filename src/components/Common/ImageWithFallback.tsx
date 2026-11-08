@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { generateIndianRoyalSvgFallback } from '../../utils/indianWeddingAssets';
 
 interface ImageWithFallbackProps {
@@ -35,15 +35,28 @@ export const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   const [currentSrc, setCurrentSrc] = useState<string>(initialUrl);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [hasError, setHasError] = useState<boolean>(false);
+  const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const nextUrl = normalizeUrl(src);
     setCurrentSrc(nextUrl);
     setIsLoading(true);
     setHasError(false);
-  }, [src]);
+
+    if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    loadTimeoutRef.current = setTimeout(() => {
+      setHasError(true);
+      setIsLoading(false);
+      setCurrentSrc(generateIndianRoyalSvgFallback(ritualCategory, alt, coupleNames));
+    }, 12000);
+
+    return () => {
+      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    };
+  }, [src, ritualCategory, alt, coupleNames]);
 
   const handleError = () => {
+    if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
     if (!hasError) {
       setHasError(true);
       setIsLoading(false);
@@ -53,6 +66,7 @@ export const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   };
 
   const handleLoad = () => {
+    if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
     setIsLoading(false);
   };
 

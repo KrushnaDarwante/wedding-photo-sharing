@@ -72,8 +72,7 @@ export function calculateDuplicateKey(name: string, size: number, lastModified: 
   return `${name.trim().toLowerCase()}_${size}_${lastModified}`;
 }
 
-export const STUDIO_OWNER_ID = 'photo_stud_01';
-export const STUDIO_OWNER_EMAIL = 'clara@lumierevows.com';
+export const STUDIO_OWNER_EMAIL = 'krushanadarwante@gmail.com';
 
 /**
  * Core business rule: Guests must NEVER be granted upload privileges.
@@ -88,7 +87,7 @@ export function isGuestAllowedToUpload(): boolean {
  */
 export function isStudioOwner(userId: string | null | undefined): boolean {
   if (!userId) return false;
-  return userId === STUDIO_OWNER_ID;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId);
 }
 
 /**

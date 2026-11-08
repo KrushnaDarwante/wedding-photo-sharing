@@ -51,7 +51,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!coupleNames.trim()) {
       setError('Please provide the couple names.');
@@ -63,7 +63,7 @@ export const CreateEventModal: React.FC<CreateEventModalProps> = ({
     }
 
     try {
-      const newEvent = createEvent({
+      const newEvent = await createEvent({
         coupleNames: coupleNames.trim(),
         weddingDate,
         venue: venue.trim() || 'Private Wedding Estate',

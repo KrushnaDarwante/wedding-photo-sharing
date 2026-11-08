@@ -423,32 +423,31 @@ export const WeddingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return newEvent;
   }, [photographer]);
 
-  const updateEvent = useCallback((eventId: string, updates: Partial<WeddingEvent>) => {
-    if (!photographer || !isStudioOwner(photographer.id)) {
-      throw new Error('Unauthorized: Only the studio owner can update wedding events.');
+  const updateEvent = useCallback(async (eventId: string, updates: Partial<WeddingEvent>): Promise<void> => {
+    if (!photographer || !isStudioOwner(photographer.id) || !supabaseClient) {
+      throw new Error('Unauthorized or Supabase unavailable: only the authenticated studio owner can update wedding events.');
     }
-
-    setEvents(prev => prev.map(evt => {
-      if (evt.id === eventId) {
-        const updated = { ...evt, ...updates, updatedAt: new Date().toISOString() };
-        broadcastPhotoEvent({ type: 'EVENT_UPDATED', eventId, timestamp: Date.now() });
-
-        if (isSupabaseConfigured && supabaseClient) {
-          supabaseClient.from('wedding_events').update({
-            couple_names: updated.coupleNames,
-            venue: updated.venue,
-            description: updated.description,
-            is_qr_active: updated.isQrActive,
-            categories: updated.categories,
-            updated_at: updated.updatedAt
-          }).eq('id', eventId).then();
-        }
-
-        return updated;
-      }
-      return evt;
-    }));
-  }, [photographer]);
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user || user.id !== photographer.id || !isStudioOwner(user.id)) {
+      throw new Error('Your owner session has expired. Please sign in again.');
+    }
+    const current = events.find(evt => evt.id === eventId);
+    if (!current) throw new Error('Wedding event not found.');
+    const updated = { ...current, ...updates, updatedAt: new Date().toISOString() };
+    const { error } = await supabaseClient.from('wedding_events').update({
+      couple_names: updated.coupleNames,
+      wedding_date: updated.weddingDate,
+      venue: updated.venue,
+      description: updated.description,
+      cover_photo_url: updated.coverPhotoUrl,
+      is_qr_active: updated.isQrActive,
+      categories: updated.categories,
+      updated_at: updated.updatedAt
+    }).eq('id', eventId).eq('photographer_id', user.id);
+    if (error) throw new Error(`Event update failed: ${error.message}`);
+    setEvents(prev => prev.map(evt => evt.id === eventId ? updated : evt));
+    broadcastPhotoEvent({ type: 'EVENT_UPDATED', eventId, event: updated, timestamp: Date.now() });
+  }, [photographer, events]);
 
   const deleteEvent = useCallback((eventId: string) => {
     if (!photographer || !isStudioOwner(photographer.id)) {

@@ -30,6 +30,7 @@ export const DatabaseCloudStoragePanel: React.FC = () => {
     latencyMs?: number;
     tablesVerified: boolean;
     storageVerified: boolean;
+    storageCheckError?: string;
     message: string;
   } | null>(null);
 
@@ -119,12 +120,15 @@ export const DatabaseCloudStoragePanel: React.FC = () => {
             <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-600 mt-2 font-mono">
               <span>Database Query: {testResult.tablesVerified ? 'Verified OK' : 'Pending'}</span>
               <span>·</span>
-              <span>Storage Bucket: {testResult.storageVerified ? 'Active (wedding-photos)' : 'Missing'}</span>
+              <span>Storage Bucket: {testResult.storageVerified ? 'Active (wedding-photos)' : testResult.storageCheckError ? 'Could not verify' : 'Missing'}</span>
               {testResult.latencyMs !== undefined && (
                 <>
                   <span>·</span>
                   <span>Roundtrip Latency: {testResult.latencyMs}ms</span>
                 </>
+              )}
+              {testResult.storageCheckError && (
+                <p className="mt-2 text-[11px] text-amber-800">Storage check detail: {testResult.storageCheckError}. A permission-limited bucket listing is not proof that the bucket is missing.</p>
               )}
             </div>
           </div>
